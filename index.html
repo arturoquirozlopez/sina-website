@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SINA - Pintura en Polvo</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="alternate icon" href="/assets/favicon.ico" />
+  <meta name="description" content="Pintura en polvo con entrega express el mismo día en Santiago. Despacho rápido, atención inmediata por WhatsApp y stock disponible en la Región Metropolitana." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #1C3566;
+      --navy-deep:  #0F1E3D;
+      --navy-mid:   #2A4E8C;
+      --navy-light: #EBF0F8;
+      --navy-muted: #C8D5EA;
+      --white:      #FFFFFF;
+      --off-white:  #F7F8FA;
+      --dark:       #111827;
+      --gray:       #6B7280;
+      --gray-light: #E5E7EB;
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  20px;
+      --shadow-sm:  0 1px 4px rgba(0,0,0,.06);
+      --shadow-md:  0 4px 20px rgba(0,0,0,.10);
+      --shadow-lg:  0 12px 40px rgba(0,0,0,.14);
+      --transition: .25s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── UTILITIES ─────────────────────────────────────── */
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .section    { padding: 96px 0; }
+    .section-sm { padding: 64px 0; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--navy-mid);
+      margin-bottom: 16px;
+    }
+    .tag::before {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 2px;
+      background: var(--navy-mid);
+      border-radius: 2px;
+    }
+    .title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .title span { color: var(--navy); }
+    .subtitle {
+      font-size: 18px;
+      color: var(--gray);
+      margin-top: 16px;
+      max-width: 600px;
+      line-height: 1.7;
+    }
+
+    /* ─── BUTTONS ─────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 28px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--white);
+      color: var(--navy);
+    }
+    .btn-primary:hover {
+      background: var(--navy-light);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255,255,255,.25);
+    }
+    .btn-navy {
+      background: var(--navy);
+      color: var(--white);
+    }
+    .btn-navy:hover {
+      background: var(--navy-mid);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(28,53,102,.3);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,.1);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,.3);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.2); }
+    .btn-wa {
+      background: #25D366;
+      color: var(--white);
+    }
+    .btn-wa:hover {
+      background: #1ebe5d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(37,211,102,.35);
+    }
+
+    /* ─── GRIDS ──────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── NAVBAR ─────────────────────────────────────────── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,.93);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-light);
+      transition: box-shadow var(--transition);
+    }
+    .navbar.scrolled { box-shadow: var(--shadow-md); }
+    .navbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-svg { width: 44px; height: 32px; }
+    .logo-wordmark {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: -.5px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray);
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--navy); }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px; height: 2px;
+      background: var(--dark);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    /* ─── HERO ───────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      padding-top: 68px;
+      background: linear-gradient(140deg, #0A1628 0%, #1C3566 50%, #2A4E8C 100%);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 60% at 85% 50%, rgba(255,255,255,.05) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 10% 80%, rgba(42,78,140,.5) 0%, transparent 50%);
+    }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-bg-mark {
+      position: absolute;
+      right: -60px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: .035;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 64px;
+      align-items: center;
+      padding: 80px 0;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.85);
+      letter-spacing: .05em;
+      margin-bottom: 28px;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      background: #7EB8F7;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity:1; transform:scale(1); }
+      50%       { opacity:.5; transform:scale(1.3); }
+    }
+    .hero-title {
+      font-size: clamp(36px, 5.5vw, 64px);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 24px;
+    }
+    .hero-title .accent { color: #7EB8F7; }
+    .hero-title .block  { display: block; }
+    .hero-desc {
+      font-size: 18px;
+      color: rgba(255,255,255,.7);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-kpis {
+      display: flex;
+      gap: 32px;
+      margin-top: 56px;
+      padding-top: 36px;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .hero-kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .hero-kpi-label {
+      font-size: 13px;
+      color: rgba(255,255,255,.5);
+      margin-top: 2px;
+    }
+    /* Hero card */
+    .hero-card {
+      background: rgba(255,255,255,.07);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      color: var(--white);
+    }
+    .hero-card-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .hero-card-sub   { font-size: 13px; color: rgba(255,255,255,.55); margin-bottom: 24px; }
+    .hero-form-field { margin-bottom: 14px; }
+    .hero-form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 6px;
+      letter-spacing: .04em;
+    }
+    .hero-form-field input,
+    .hero-form-field select,
+    .hero-form-field textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--radius-sm);
+      color: var(--white);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .hero-form-field input::placeholder,
+    .hero-form-field textarea::placeholder { color: rgba(255,255,255,.3); }
+    .hero-form-field select option { background: var(--navy); color: var(--white); }
+    .hero-form-field input:focus,
+    .hero-form-field select:focus,
+    .hero-form-field textarea:focus { border-color: #7EB8F7; }
+    .hero-form-note {
+      font-size: 11px;
+      color: rgba(255,255,255,.38);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* ─── TRUST BAR ──────────────────────────────────────── */
+    .trust-bar { background: var(--navy); padding: 28px 0; }
+    .trust-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    .trust-item { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .trust-icon {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .trust-text-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .trust-text-label {
+      font-size: 11px;
+      color: rgba(255,255,255,.5);
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+    .trust-divider { width: 1px; height: 36px; background: rgba(255,255,255,.12); flex-shrink: 0; }
+
+    /* ─── PRODUCTOS ──────────────────────────────────────── */
+    .products { background: var(--off-white); }
+    .products-header {
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 56px;
+    }
+    .products-header .subtitle { margin: 0 auto; }
+    .product-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 32px 28px;
+      border: 1px solid var(--gray-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: var(--navy);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition);
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: transparent;
+    }
+    .product-card:hover::before { transform: scaleX(1); }
+    .product-icon {
+      width: 52px; height: 52px;
+      background: var(--navy-light);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .product-name { font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .product-desc { font-size: 14px; color: var(--gray); line-height: 1.65; margin-bottom: 18px; }
+    .product-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .product-tag {
+      display: inline-block;
+      background: var(--navy-light);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    /* ─── COLORES DISPONIBLES ────────────────────────────── */
+    .colors { background: var(--white); }
+    .colors-header { text-align: center; max-width: 560px; margin: 0 auto 56px; }
+    .colors-header .subtitle { margin: 0 auto; }
+
+    .color-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .color-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--gray);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    .color-swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+    }
+    .swatch-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .color-swatch:hover .swatch-circle {
+      transform: scale(1.12);
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    }
+    .swatch-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray);
+      text-align: center;
+      max-width: 68px;
+      line-height: 1.3;
+      letter-spacing: .02em;
+    }
+    .colors-cta {
+      text-align: center;
+      margin-top: 52px;
+      padding: 36px;
+      background: var(--navy-light);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--navy-muted);
+    }
+    .colors-cta p {
+      font-size: 15px;
+      color: var(--navy);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    /* ─── POR QUÉ SINA ───────────────────────────────────── */
+    .why { background: var(--off-white); }
+    .why-inner {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .why-left { position: sticky; top: 100px; }
+    .why-visual {
+      background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 100%);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      margin-top: 40px;
+      color: var(--white);
+    }
+    .why-visual-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,.45);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .why-stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .why-stat-row:last-child { border-bottom: none; }
+    .why-stat-label { font-size: 14px; color: rgba(255,255,255,.65); }
+    .why-stat-val { font-size: 15px; font-weight: 700; color: #7EB8F7; }
+    .why-pillars { display: flex; flex-direction: column; gap: 16px; }
+    .pillar {
+      background: var(--white);
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      transition: var(--transition);
+    }
+    .pillar:hover { border-color: var(--navy-muted); box-shadow: var(--shadow-sm); }
+    .pillar-icon {
+      width: 44px; height: 44px;
+      background: var(--navy-light);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .pillar-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .pillar-desc  { font-size: 13px; color: var(--gray); line-height: 1.6; }
+
+    /* ─── CÓMO FUNCIONA ──────────────────────────────────── */
+    .how { background: var(--navy); }
+    .how-header { text-align: center; margin-bottom: 64px; }
+    .how-header .tag { color: rgba(255,255,255,.55); }
+    .how-header .tag::before { background: rgba(255,255,255,.55); }
+    .how-header .title { color: var(--white); }
+    .how-header .subtitle { color: rgba(255,255,255,.6); margin: 16px auto 0; }
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 2px;
+      background: rgba(255,255,255,.08);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .how-step {
+      background: transparent;
+      padding: 40px 28px;
+      position: relative;
+      transition: background var(--transition);
+    }
+    .how-step:hover { background: rgba(255,255,255,.05); }
+    .how-step-num {
+      font-size: 48px;
+      font-weight: 900;
+      color: rgba(255,255,255,.07);
+      line-height: 1;
+      margin-bottom: 16px;
+      letter-spacing: -.03em;
+    }
+    .how-step-icon { font-size: 28px; margin-bottom: 16px; }
+    .how-step-title { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 10px; }
+    .how-step-desc  { font-size: 13px; color: rgba(255,255,255,.55); line-height: 1.65; }
+    .how-step-arrow {
+      position: absolute; top: 40px; right: -16px;
+      width: 32px; height: 32px;
+      background: var(--navy-mid);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: rgba(255,255,255,.5);
+      z-index: 1;
+    }
+    .how-step:last-child .how-step-arrow { display: none; }
+
+    /* ─── SECTORES ───────────────────────────────────────── */
+    .sectors { background: var(--off-white); }
+    .sectors-header { text-align: center; margin-bottom: 56px; }
+    .sectors-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .sector-card {
+      background: var(--white);
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-md);
+      padding: 28px 20px;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .sector-card:hover {
+      border-color: var(--navy-muted);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+    .sector-icon { font-size: 32px; margin-bottom: 12px; }
+    .sector-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+
+    /* ─── CONTACTO ───────────────────────────────────────── */
+    .quote { background: var(--white); }
+    .quote-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .quote-left-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--navy-light);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .quote-promise { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
+    .promise-row { display: flex; align-items: center; gap: 14px; }
+    .promise-check {
+      width: 32px; height: 32px;
+      background: var(--navy-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .promise-text { font-size: 14px; color: var(--gray); }
+    .promise-text strong { color: var(--dark); }
+    .quote-form-box {
+      background: var(--off-white);
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+    }
+    .quote-form-box h3 { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .quote-form-box p  { font-size: 14px; color: var(--gray); margin-bottom: 28px; }
+    .native-form .field { margin-bottom: 16px; }
+    .native-form label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray);
+      margin-bottom: 6px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .native-form input,
+    .native-form select,
+    .native-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--white);
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--dark);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .native-form input:focus,
+    .native-form select:focus,
+    .native-form textarea:focus { border-color: var(--navy); }
+    .native-form textarea { resize: vertical; min-height: 90px; }
+
+    /* ─── FOOTER ─────────────────────────────────────────── */
+    footer {
+      background: var(--navy-deep);
+      padding: 64px 0 32px;
+      color: rgba(255,255,255,.55);
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 48px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .footer-brand-desc { font-size: 14px; line-height: 1.7; margin-top: 16px; max-width: 260px; }
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 10px; }
+    .footer-col ul li a { font-size: 14px; color: rgba(255,255,255,.45); transition: color var(--transition); }
+    .footer-col ul li a:hover { color: var(--white); }
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 28px;
+      font-size: 13px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom a { color: rgba(255,255,255,.35); transition: color var(--transition); }
+    .footer-bottom a:hover { color: var(--white); }
+
+    /* ─── WHATSAPP FLOAT ──────────────────────────────────── */
+    .wa-float {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      z-index: 999;
+      width: 56px; height: 56px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(37,211,102,.5);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .wa-float:hover { transform: scale(1.08); box-shadow: 0 10px 32px rgba(37,211,102,.6); }
+    .wa-float svg { width: 28px; height: 28px; fill: white; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-card  { display: none; }
+      .why-inner  { grid-template-columns: 1fr; gap: 48px; }
+      .why-left   { position: static; }
+      .how-steps  { grid-template-columns: repeat(2,1fr); }
+      .quote-inner { grid-template-columns: 1fr; gap: 48px; }
+      .footer-top  { grid-template-columns: 1fr 1fr; gap: 40px; }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .hamburger  { display: flex; }
+      .grid-3     { grid-template-columns: 1fr 1fr; }
+      .sectors-grid { grid-template-columns: repeat(2,1fr); }
+      .how-steps  { grid-template-columns: 1fr; }
+      .trust-bar-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .trust-divider { display: none; }
+      .footer-top { grid-template-columns: 1fr; }
+      .color-swatches { gap: 12px; }
+      .swatch-circle { width: 48px; height: 48px; }
+    }
+    @media (max-width: 480px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .sectors-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="#" class="logo">
+        <svg class="logo-svg" viewBox="0 0 54 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0"  y="0"  width="42" height="10" rx="2" fill="#1C3566"/>
+          <rect x="6"  y="14" width="34" height="10" rx="2" fill="#1C3566"/>
+          <rect x="0"  y="28" width="54" height="10" rx="2" fill="#1C3566"/>
+        </svg>
+        <span class="logo-wordmark">SINA</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#productos">Productos</a></li>
+        <li><a href="#colores">Colores</a></li>
+        <li><a href="#por-que">Por qué SINA</a></li>
+        <li><a href="#sectores">Sectores</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="https://wa.me/56912345678" class="btn btn-wa" style="padding:10px 20px;font-size:14px;" target="_blank">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Cotiza por WhatsApp
+        </a>
+      </div>
+      <button class="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="hero" id="inicio">
+  <div class="hero-grid"></div>
+  <svg class="hero-bg-mark" width="500" height="360" viewBox="0 0 54 38" fill="none">
+    <rect x="0"  y="0"  width="42" height="10" rx="2" fill="white"/>
+    <rect x="6"  y="14" width="34" height="10" rx="2" fill="white"/>
+    <rect x="0"  y="28" width="54" height="10" rx="2" fill="white"/>
+  </svg>
+  <div class="container">
+    <div class="hero-inner">
+
+      <!-- Left: copy -->
+      <div>
+        <div class="hero-badge">
+          <div class="hero-badge-dot"></div>
+          Despacho mismo día · Santiago RM
+        </div>
+
+        <h1 class="hero-title">
+          <span class="block">Pintura en polvo</span>
+          <span class="block accent">disponible ahora.</span>
+          <span class="block">Entregamos hoy.</span>
+        </h1>
+
+        <p class="hero-desc">
+          Cotiza por WhatsApp y recibe respuesta inmediata.
+          Despacho express el mismo día en la Región Metropolitana.
+          Stock disponible, sin esperas.
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://wa.me/56912345678" class="btn btn-wa" target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Cotiza por WhatsApp
+          </a>
+        </div>
+
+        <div class="hero-kpis">
+          <div>
+            <div class="hero-kpi-value">Inmediata</div>
+            <div class="hero-kpi-label">Respuesta</div>
+          </div>
+          <div>
+            <div class="hero-kpi-value">Mismo día</div>
+            <div class="hero-kpi-label">Despacho RM</div>
+          </div>
+          <div>
+            <div class="hero-kpi-value">99%</div>
+            <div class="hero-kpi-label">Satisfacción</div>
+          </div>
+          <div>
+            <div class="hero-kpi-value">5+</div>
+            <div class="hero-kpi-label">Años de experiencia</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: quick-quote card -->
+      <div class="hero-card">
+        <div class="hero-card-title">Cotización express</div>
+        <div class="hero-card-sub">Completa y te abrimos WhatsApp con tu consulta lista</div>
+        <form id="heroForm">
+          <div class="hero-form-field">
+            <label>Empresa</label>
+            <input type="text" name="empresa" placeholder="Nombre de tu empresa" />
+          </div>
+          <div class="hero-form-field">
+            <label>Nombre</label>
+            <input type="text" name="nombre" placeholder="Tu nombre" />
+          </div>
+          <div class="hero-form-field">
+            <label>Color</label>
+            <select name="color">
+              <option value="">Seleccionar...</option>
+              <option>Blanco brillante</option>
+              <option>Blanco mate</option>
+              <option>Negro brillante</option>
+              <option>Negro mate</option>
+              <option>Gris industrial</option>
+              <option>Gris grafito</option>
+              <option>Rojo 3000</option>
+              <option>Rojo 3020</option>
+              <option>Azul 5005</option>
+              <option>Verde 6005</option>
+              <option>Otro color (consultar)</option>
+            </select>
+          </div>
+          <div class="hero-form-field">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="tu@empresa.cl" />
+          </div>
+          <div class="hero-form-field">
+            <label>Cantidad (kg)</label>
+            <input type="text" name="cantidad" placeholder="Ej: 25 kg" />
+          </div>
+          <button type="submit" class="btn btn-wa" style="width:100%;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Cotiza por WhatsApp →
+          </button>
+        </form>
+        <p class="hero-form-note">🚀 Respuesta inmediata en horario hábil</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TRUST BAR
+══════════════════════════════════════════════════════════ -->
+<div class="trust-bar">
+  <div class="container">
+    <div class="trust-bar-inner">
+      <div class="trust-item">
+        <div class="trust-icon">⚡</div>
+        <div>
+          <div class="trust-text-value">Respuesta inmediata</div>
+          <div class="trust-text-label">Cotiza por WhatsApp ahora</div>
+        </div>
+      </div>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <div class="trust-icon">🚚</div>
+        <div>
+          <div class="trust-text-value">Despacho el mismo día</div>
+          <div class="trust-text-label">Express en Región Metropolitana</div>
+        </div>
+      </div>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <div class="trust-icon">📦</div>
+        <div>
+          <div class="trust-text-value">Stock disponible</div>
+          <div class="trust-text-label">Sin esperas ni importaciones</div>
+        </div>
+      </div>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <div class="trust-icon">🔧</div>
+        <div>
+          <div class="trust-text-value">Asesoría técnica</div>
+          <div class="trust-text-label">Equipo especialista dedicado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PRODUCTOS
+══════════════════════════════════════════════════════════ -->
+<section class="products section" id="productos">
+  <div class="container">
+    <div class="products-header fade-up">
+      <div class="tag">Catálogo</div>
+      <h2 class="title">Líneas de <span>producto</span></h2>
+      <p class="subtitle">Pintura en polvo en diferentes acabados para cada tipo de aplicación industrial.</p>
+    </div>
+    <div class="grid-3">
+
+      <div class="product-card fade-up">
+        <div class="product-icon">✨</div>
+        <div class="product-name">Lisa Brillante</div>
+        <p class="product-desc">Acabado liso de alta reflectividad. Superficie uniforme y fácil de limpiar, ideal para mobiliario, estructuras y piezas visibles.</p>
+        <div class="product-tags">
+          <span class="product-tag">Alto brillo</span>
+          <span class="product-tag">Fácil limpieza</span>
+          <span class="product-tag">Versatil</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-icon">🔲</div>
+        <div class="product-name">Lisa Mate</div>
+        <p class="product-desc">Acabado mate moderno, sin reflexión. Aspecto sobrio y contemporáneo muy demandado en diseño industrial y arquitectura.</p>
+        <div class="product-tags">
+          <span class="product-tag">Sin reflexión</span>
+          <span class="product-tag">Diseño moderno</span>
+          <span class="product-tag">Soft touch</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-icon">⚙️</div>
+        <div class="product-name">Micro Industrial</div>
+        <p class="product-desc">Textura micronizada que oculta imperfecciones y aporta mayor resistencia al rayado. El favorito en maquinaria y equipos de alto uso.</p>
+        <div class="product-tags">
+          <span class="product-tag">Anti-rayado</span>
+          <span class="product-tag">Oculta imperfecciones</span>
+          <span class="product-tag">Heavy duty</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-icon">🏗️</div>
+        <div class="product-name">Epoxi Interior</div>
+        <p class="product-desc">Formulación epoxi de alta adherencia y resistencia química. Recomendada para superficies que requieren protección intensiva en ambientes interiores.</p>
+        <div class="product-tags">
+          <span class="product-tag">Alta adherencia</span>
+          <span class="product-tag">Resistencia química</span>
+          <span class="product-tag">Interior</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-icon">🌧️</div>
+        <div class="product-name">Poliéster Exterior</div>
+        <p class="product-desc">Resiste la exposición UV, la lluvia y los cambios de temperatura. Ideal para estructuras, fachadas y equipos que trabajan en exterior.</p>
+        <div class="product-tags">
+          <span class="product-tag">Resistencia UV</span>
+          <span class="product-tag">Exterior</span>
+          <span class="product-tag">Anti-humedad</span>
+        </div>
+      </div>
+
+      <div class="product-card fade-up">
+        <div class="product-icon">🔩</div>
+        <div class="product-name">Primario Epoxi</div>
+        <p class="product-desc">Base de imprimación para preparar superficies metálicas antes de la capa de acabado. Maximiza la adherencia y la protección anticorrosiva.</p>
+        <div class="product-tags">
+          <span class="product-tag">Anti-corrosión</span>
+          <span class="product-tag">Imprimación</span>
+          <span class="product-tag">Metales</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     COLORES DISPONIBLES
+══════════════════════════════════════════════════════════ -->
+<section class="colors section" id="colores">
+  <div class="container">
+    <div class="colors-header fade-up">
+      <div class="tag">Carta de colores</div>
+      <h2 class="title">Colores <span>disponibles</span></h2>
+      <p class="subtitle">Stock disponible para despacho inmediato. Consulta disponibilidad actualizada por WhatsApp.</p>
+    </div>
+
+    <div class="color-groups fade-up">
+
+      <!-- BLANCOS Y NEGROS -->
+      <div>
+        <div class="color-group-title">Blancos</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#F8F8F8;"></div>
+            <div class="swatch-name">Blanco Brillante</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#EEEEEE;"></div>
+            <div class="swatch-name">Blanco Mate</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#E4E4E4;"></div>
+            <div class="swatch-name">Blanco Micro</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="color-group-title">Negros</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#1A1A1A;"></div>
+            <div class="swatch-name">Negro Brillante</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#242424;"></div>
+            <div class="swatch-name">Negro Mate</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#2D2D2D;"></div>
+            <div class="swatch-name">Negro Micro</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRISES -->
+      <div>
+        <div class="color-group-title">Grises</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#4E5452;"></div>
+            <div class="swatch-name">Gris 7022</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#CFCFCF;"></div>
+            <div class="swatch-name">Gris 7047</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#B8B8B8;"></div>
+            <div class="swatch-name">Gris Claro MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#3A3A3A;"></div>
+            <div class="swatch-name">Gris Grafito</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#787878;"></div>
+            <div class="swatch-name">Gris Industrial</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#6E6E6E;"></div>
+            <div class="swatch-name">Gris Industrial MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#A8A8A8;"></div>
+            <div class="swatch-name">Gris Mercurio</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#5E5E5E;"></div>
+            <div class="swatch-name">Gris Micro Industrial</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#D0D0D0;"></div>
+            <div class="swatch-name">Gris Perla</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROJOS -->
+      <div>
+        <div class="color-group-title">Rojos</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#AB2524;"></div>
+            <div class="swatch-name">Rojo 3000</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#9E2222;"></div>
+            <div class="swatch-name">Rojo 3000 MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#CC0500;"></div>
+            <div class="swatch-name">Rojo 3020</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#BE0400;"></div>
+            <div class="swatch-name">Rojo 3020 MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#8B3A2A;"></div>
+            <div class="swatch-name">Rojo Teja</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NARANJOS Y AMARILLOS -->
+      <div>
+        <div class="color-group-title">Naranjos &amp; Amarillos</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#F54D0E;"></div>
+            <div class="swatch-name">Naranjo 2004</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#E0480C;"></div>
+            <div class="swatch-name">Naranjo 2004 MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#F67828;"></div>
+            <div class="swatch-name">Naranjo 2008</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#F9A900;"></div>
+            <div class="swatch-name">Amarillo 1003</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#F5D033;"></div>
+            <div class="swatch-name">Amarillo 1018</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AZULES Y VERDES -->
+      <div>
+        <div class="color-group-title">Azules</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#003494;"></div>
+            <div class="swatch-name">Azul 5002 MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#005387;"></div>
+            <div class="swatch-name">Azul 5005</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="color-group-title">Verdes &amp; Menta</div>
+        <div class="color-swatches">
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#2F5F3D;"></div>
+            <div class="swatch-name">Verde 6005</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#2A5537;"></div>
+            <div class="swatch-name">Verde 6005 MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#5E6132;"></div>
+            <div class="swatch-name">Verde Oliva</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#565B2D;"></div>
+            <div class="swatch-name">Verde Oliva MT</div>
+          </div>
+          <div class="color-swatch">
+            <div class="swatch-circle" style="background:#9DCCA8;"></div>
+            <div class="swatch-name">Menta MT</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA colores -->
+    <div class="colors-cta fade-up">
+      <p>¿Necesitas un color específico? Consulta disponibilidad en tiempo real por WhatsApp.</p>
+      <a href="https://wa.me/56912345678?text=Hola%20SINA%2C%20quisiera%20consultar%20disponibilidad%20de%20colores." class="btn btn-wa" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Consultar disponibilidad
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     POR QUÉ SINA
+══════════════════════════════════════════════════════════ -->
+<section class="why section" id="por-que">
+  <div class="container">
+    <div class="why-inner">
+
+      <!-- Left sticky -->
+      <div class="why-left fade-up">
+        <div class="tag">Diferenciadores</div>
+        <h2 class="title">Por qué elegir <span>SINA</span></h2>
+        <p class="subtitle">Somos la forma más rápida de conseguir pintura en polvo cuando la necesitas. Sin demoras, sin burocracia.</p>
+
+        <div class="why-visual">
+          <div class="why-visual-title">SINA en números</div>
+          <div class="why-stat-row">
+            <span class="why-stat-label">Tiempo de respuesta</span>
+            <span class="why-stat-val">Inmediato</span>
+          </div>
+          <div class="why-stat-row">
+            <span class="why-stat-label">Despacho RM</span>
+            <span class="why-stat-val">Mismo día o express</span>
+          </div>
+          <div class="why-stat-row">
+            <span class="why-stat-label">Satisfacción cliente</span>
+            <span class="why-stat-val">99%</span>
+          </div>
+          <div class="why-stat-row">
+            <span class="why-stat-label">Años en el mercado</span>
+            <span class="why-stat-val">5+</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: pillars -->
+      <div class="why-pillars">
+
+        <div class="pillar fade-up">
+          <div class="pillar-icon">💬</div>
+          <div>
+            <div class="pillar-title">Respuesta inmediata por WhatsApp</div>
+            <p class="pillar-desc">Escríbenos y te respondemos al instante. Sin formularios que demoran, sin esperar correos. Tu urgencia de producción no puede esperar.</p>
+          </div>
+        </div>
+
+        <div class="pillar fade-up">
+          <div class="pillar-icon">🚀</div>
+          <div>
+            <div class="pillar-title">Despacho el mismo día</div>
+            <p class="pillar-desc">Stock disponible para entrega inmediata. Si lo necesitas hoy, hacemos lo posible para que llegue hoy. Despachos express dentro de la RM en pocas horas.</p>
+          </div>
+        </div>
+
+        <div class="pillar fade-up">
+          <div class="pillar-icon">🤝</div>
+          <div>
+            <div class="pillar-title">Atención personalizada</div>
+            <p class="pillar-desc">No eres un número de orden. Conocemos tu proceso y te orientamos para que siempre elijas el producto correcto, ahorrando tiempo y costos.</p>
+          </div>
+        </div>
+
+        <div class="pillar fade-up">
+          <div class="pillar-icon">🔧</div>
+          <div>
+            <div class="pillar-title">Asesoría técnica especializada</div>
+            <p class="pillar-desc">Seleccionamos contigo el tipo de pintura, acabado y temperatura de curado adecuados según tu sustrato y condiciones de aplicación.</p>
+          </div>
+        </div>
+
+        <div class="pillar fade-up">
+          <div class="pillar-icon">🏆</div>
+          <div>
+            <div class="pillar-title">Experiencia y confianza</div>
+            <p class="pillar-desc">Más de 5 años abasteciendo a empresas industriales en Chile. Sabemos lo que necesitas, cuándo lo necesitas y cómo entregarlo a tiempo.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     CÓMO FUNCIONA
+══════════════════════════════════════════════════════════ -->
+<section class="how section" id="como-funciona">
+  <div class="container">
+    <div class="how-header fade-up">
+      <div class="tag">Proceso</div>
+      <h2 class="title">Conseguir tu pintura es simple</h2>
+      <p class="subtitle">Cuatro pasos para tener tu pintura en polvo lista para producción hoy mismo.</p>
+    </div>
+
+    <div class="how-steps fade-up">
+      <div class="how-step">
+        <div class="how-step-num">01</div>
+        <div class="how-step-icon">💬</div>
+        <div class="how-step-title">Escríbenos por WhatsApp</div>
+        <p class="how-step-desc">Cuéntanos qué necesitas: producto, color y cantidad. Sin formularios ni largas esperas.</p>
+        <div class="how-step-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">02</div>
+        <div class="how-step-icon">⚡</div>
+        <div class="how-step-title">Recibe respuesta inmediata</div>
+        <p class="how-step-desc">Te confirmamos disponibilidad, precio y tiempo de entrega al instante en horario hábil.</p>
+        <div class="how-step-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">03</div>
+        <div class="how-step-icon">✅</div>
+        <div class="how-step-title">Confirma tu pedido</div>
+        <p class="how-step-desc">Aprueba la cotización y coordina el pago. Emitimos factura electrónica (DTE) de inmediato.</p>
+        <div class="how-step-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">04</div>
+        <div class="how-step-icon">🚚</div>
+        <div class="how-step-title">Recibe tu pedido hoy</div>
+        <p class="how-step-desc">Despacho el mismo día en RM. Coordina retiro en bodega o envío express a tu planta.</p>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:48px;">
+      <a href="https://wa.me/56912345678?text=Hola%20SINA%2C%20necesito%20pintura%20en%20polvo.%20%C2%BFPueden%20ayudarme%3F" class="btn btn-wa" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Cotiza por WhatsApp ahora
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTORES
+══════════════════════════════════════════════════════════ -->
+<section class="sectors section" id="sectores">
+  <div class="container">
+    <div class="sectors-header fade-up">
+      <div class="tag">Industrias</div>
+      <h2 class="title">¿A qué sectores <span>servimos</span>?</h2>
+      <p class="subtitle" style="margin:16px auto 0;">Abastecemos a empresas industriales y manufactureras de toda la Región Metropolitana y Chile.</p>
+    </div>
+    <div class="sectors-grid fade-up">
+      <div class="sector-card">
+        <div class="sector-icon">🏗️</div>
+        <div class="sector-name">Construcción & Estructuras</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">⚙️</div>
+        <div class="sector-name">Metalmecánica</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">🪑</div>
+        <div class="sector-name">Mobiliario Industrial</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">🚗</div>
+        <div class="sector-name">Automotriz & Repuestos</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">⚡</div>
+        <div class="sector-name">Equipos Eléctricos</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">🌾</div>
+        <div class="sector-name">Agroindustria</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">🏠</div>
+        <div class="sector-name">Arquitectura & Fachadas</div>
+      </div>
+      <div class="sector-card">
+        <div class="sector-icon">🔧</div>
+        <div class="sector-name">Mantenimiento Industrial</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     CONTACTO
+══════════════════════════════════════════════════════════ -->
+<section class="quote section" id="cotizacion">
+  <div class="container">
+    <div class="quote-inner">
+
+      <!-- Left -->
+      <div class="fade-up">
+        <div class="quote-left-badge">💬 Contacto directo</div>
+        <h2 class="title">¿Necesitas pintura<br><span>en polvo hoy?</span></h2>
+        <p class="subtitle">Completa el formulario y te abrimos WhatsApp con tu consulta lista. Respuesta inmediata en horario hábil.</p>
+
+        <div class="quote-promise">
+          <div class="promise-row">
+            <div class="promise-check">⚡</div>
+            <div class="promise-text"><strong>Respuesta inmediata</strong> en horario hábil</div>
+          </div>
+          <div class="promise-row">
+            <div class="promise-check">🚚</div>
+            <div class="promise-text"><strong>Despacho el mismo día</strong> en RM</div>
+          </div>
+          <div class="promise-row">
+            <div class="promise-check">📦</div>
+            <div class="promise-text"><strong>Stock disponible</strong>, sin esperas ni importaciones</div>
+          </div>
+          <div class="promise-row">
+            <div class="promise-check">🔧</div>
+            <div class="promise-text"><strong>Asesoría técnica</strong> incluida sin costo</div>
+          </div>
+        </div>
+
+        <div style="margin-top:36px;padding:28px;background:var(--off-white);border-radius:var(--radius-md);border:1px solid var(--gray-light);">
+          <div style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:12px;">¿Prefieres escribir directamente?</div>
+          <a href="https://wa.me/56912345678" class="btn btn-wa" style="width:100%;justify-content:center;margin-bottom:10px;" target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Abrir WhatsApp ahora
+          </a>
+          <div style="text-align:center;font-size:12px;color:var(--gray);">contacto@gruposina.cl</div>
+        </div>
+      </div>
+
+      <!-- Right: form -->
+      <div class="quote-form-box fade-up">
+        <h3>Cotiza por WhatsApp</h3>
+        <p>Completa los datos y te abrimos WhatsApp con tu consulta prellenada.</p>
+        <form class="native-form" id="quoteForm">
+          <div class="field">
+            <label>Empresa</label>
+            <input type="text" name="empresa" placeholder="Nombre de tu empresa" />
+          </div>
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" name="nombre" placeholder="Tu nombre" />
+          </div>
+          <div class="field">
+            <label>Color</label>
+            <select name="color">
+              <option value="">Seleccionar color...</option>
+              <option>Blanco brillante</option>
+              <option>Blanco mate</option>
+              <option>Blanco micro</option>
+              <option>Negro brillante</option>
+              <option>Negro mate</option>
+              <option>Negro micro</option>
+              <option>Gris 7022</option>
+              <option>Gris 7047</option>
+              <option>Gris claro MT</option>
+              <option>Gris grafito</option>
+              <option>Gris industrial</option>
+              <option>Gris industrial MT</option>
+              <option>Gris mercurio</option>
+              <option>Gris micro industrial</option>
+              <option>Gris perla</option>
+              <option>Rojo 3000</option>
+              <option>Rojo 3000 MT</option>
+              <option>Rojo 3020</option>
+              <option>Rojo 3020 MT</option>
+              <option>Rojo teja</option>
+              <option>Naranjo 2004</option>
+              <option>Naranjo 2004 MT</option>
+              <option>Naranjo 2008</option>
+              <option>Amarillo 1003</option>
+              <option>Amarillo 1018</option>
+              <option>Azul 5002 MT</option>
+              <option>Azul 5005</option>
+              <option>Verde 6005</option>
+              <option>Verde 6005 MT</option>
+              <option>Verde oliva</option>
+              <option>Verde oliva MT</option>
+              <option>Menta MT</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="tu@empresa.cl" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="field">
+              <label>Cantidad (kg)</label>
+              <input type="text" name="cantidad" placeholder="Ej: 25 kg" />
+            </div>
+            <div class="field">
+              <label>Región</label>
+              <select name="region">
+                <option>Metropolitana</option>
+                <option>Valparaíso</option>
+                <option>O'Higgins</option>
+                <option>Biobío</option>
+                <option>Otra región</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Detalle adicional</label>
+            <textarea name="detalle" placeholder="Descripción de tu proyecto, urgencia, etc."></textarea>
+          </div>
+          <button type="submit" class="btn btn-wa" style="width:100%;justify-content:center;font-size:15px;padding:16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Cotiza por WhatsApp →
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="logo">
+          <svg width="36" height="26" viewBox="0 0 54 38" fill="none">
+            <rect x="0"  y="0"  width="42" height="10" rx="2" fill="rgba(255,255,255,0.7)"/>
+            <rect x="6"  y="14" width="34" height="10" rx="2" fill="rgba(255,255,255,0.7)"/>
+            <rect x="0"  y="28" width="54" height="10" rx="2" fill="rgba(255,255,255,0.7)"/>
+          </svg>
+          <span style="font-size:18px;font-weight:900;color:rgba(255,255,255,0.85);letter-spacing:-.5px;">SINA</span>
+        </div>
+        <p class="footer-brand-desc">Pintura en polvo disponible, respuesta inmediata y despacho rápido. La forma más rápida de conseguir lo que necesitas.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Productos</h4>
+        <ul>
+          <li><a href="#productos">Lisa brillante</a></li>
+          <li><a href="#productos">Lisa mate</a></li>
+          <li><a href="#productos">Micro industrial</a></li>
+          <li><a href="#productos">Epoxi interior</a></li>
+          <li><a href="#productos">Poliéster exterior</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#por-que">Por qué SINA</a></li>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+          <li><a href="#colores">Carta de colores</a></li>
+          <li><a href="#sectores">Sectores</a></li>
+          <li><a href="#cotizacion">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="https://wa.me/56912345678" target="_blank">💬 WhatsApp</a></li>
+          <li><a href="mailto:contacto@gruposina.cl">✉️ contacto@gruposina.cl</a></li>
+          <li><a href="#">📍 Santiago, Chile</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SINA. Todos los derechos reservados.</span>
+      <div style="display:flex;gap:20px;">
+        <a href="#">Política de privacidad</a>
+        <a href="#">Términos de uso</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     WHATSAPP FLOATING BUTTON
+══════════════════════════════════════════════════════════ -->
+<a href="https://wa.me/56912345678" class="wa-float" target="_blank" aria-label="Cotiza por WhatsApp">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script>
+  /* ════════════════════════════════════════════════
+     CONFIGURACIÓN — editar solo estos valores
+     ════════════════════════════════════════════════ */
+  const WA_NUMBER = '56912345678'; // ← Reemplazar con número real (sin + ni espacios)
+
+  /* ── Reescribir todos los href de WhatsApp con el número configurado ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('a[href*="wa.me/"]').forEach(a => {
+      a.href = a.href.replace(/wa\.me\/\d+/, 'wa.me/' + WA_NUMBER);
+    });
+  });
+
+  /* ── Navbar scroll shadow ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  /* ── Fade-up on scroll ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  /* ── Helper: open WhatsApp with formatted message ── */
+  function openWhatsApp(lines) {
+    const msg = lines.filter(Boolean).join('\n');
+    window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg), '_blank');
+  }
+
+  /* ── Hero form → WhatsApp ── */
+  document.getElementById('heroForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const f = this;
+    const val = name => (f.querySelector('[name="'+name+'"]')?.value || '').trim();
+    openWhatsApp([
+      '👋 Hola SINA, quiero cotizar pintura en polvo.',
+      '─────────────────────',
+      val('empresa')  ? '🏢 Empresa:   ' + val('empresa')  : '',
+      val('nombre')   ? '👤 Nombre:    ' + val('nombre')   : '',
+      val('email')    ? '✉️ Email:     ' + val('email')    : '',
+      val('color')    ? '🔵 Color:     ' + val('color')    : '',
+      val('cantidad') ? '📦 Cantidad:  ' + val('cantidad') : '',
+      '─────────────────────',
+      '¿Pueden confirmarme disponibilidad y precio?',
+    ]);
+  });
+
+  /* ── Quote form → WhatsApp ── */
+  document.getElementById('quoteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const f = this;
+    const val = name => (f.querySelector('[name="'+name+'"]')?.value || '').trim();
+    openWhatsApp([
+      '👋 Hola SINA, quiero cotizar pintura en polvo.',
+      '─────────────────────',
+      val('empresa')  ? '🏢 Empresa:   ' + val('empresa')  : '',
+      val('nombre')   ? '👤 Nombre:    ' + val('nombre')   : '',
+      val('email')    ? '✉️ Email:     ' + val('email')    : '',
+      val('color')    ? '🔵 Color:     ' + val('color')    : '',
+      val('cantidad') ? '📦 Cantidad:  ' + val('cantidad') : '',
+      val('region')   ? '📍 Región:    ' + val('region')   : '',
+      val('detalle')  ? '📝 Detalle:   ' + val('detalle')  : '',
+      '─────────────────────',
+      '¿Pueden confirmarme disponibilidad, precio y plazo de entrega?',
+    ]);
+  });
+</script>
+
+</body>
+</html>
