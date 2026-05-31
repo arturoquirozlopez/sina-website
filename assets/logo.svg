@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <rect width="1200" height="400" fill="#FFFFFF"/>
+  <!-- Symbol: layered S -->
+  <g transform="translate(160, 110)">
+    <rect x="0" y="0" width="160" height="55" rx="2" fill="#0F2747"/>
+    <rect x="40" y="73" width="160" height="55" rx="2" fill="#0F2747"/>
+    <rect x="0" y="146" width="160" height="55" rx="2" fill="#0F2747"/>
+    <rect x="40" y="73" width="160" height="6" fill="#1E88E5"/>
+  </g>
+  <!-- Wordmark -->
+  <g transform="translate(450, 250)" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+    <text x="0" y="0" font-size="160" font-weight="800" fill="#0F2747" letter-spacing="18">SINA</text>
+  </g>
+</svg>
