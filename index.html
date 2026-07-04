@@ -1,3 +1,7 @@
+https://raw.githubusercontent.com/arturoquirozlopez/sina-website/main/index.html
+→ https://raw.githubusercontent.com/arturoquirozlopez/sina-website/main/index.html
+Content-Type: text/plain; charset=utf-8
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -931,7 +935,7 @@
       <div class="hero-card">
         <div class="hero-card-title">Cotización express</div>
         <div class="hero-card-sub">Completa el formulario y te abrimos WhatsApp con tu consulta lista</div>
-        <form id="heroForm">
+        <form id="heroForm" data-sina-form="quote">
           <div class="hero-form-field">
             <label>Empresa</label>
             <input type="text" name="empresa" placeholder="Nombre de tu empresa" />
@@ -1518,7 +1522,7 @@
       <div class="quote-form-box fade-up">
         <h3>Cotiza por WhatsApp</h3>
         <p>Completa los datos y cotiza tu pintura electrostática en segundos por WhatsApp.</p>
-        <form class="native-form" id="quoteForm">
+        <form class="native-form" id="quoteForm" data-sina-form="quote">
           <div class="field">
             <label>Empresa</label>
             <input type="text" name="empresa" placeholder="Nombre de tu empresa" />
@@ -1718,7 +1722,14 @@
 
   /* ── Helper: open WhatsApp with formatted message ── */
   function openWhatsApp(lines) {
-    const msg = lines.filter(Boolean).join('\n');
+    let msg = lines.filter(Boolean).join('\n');
+    // Inyectar sina_ref para atribucion marketing (si el snippet esta cargado)
+    if (typeof window.sinaTagMessage === 'function') {
+      msg = window.sinaTagMessage(msg);
+    }
+    if (typeof window.sinaTrack === 'function') {
+      window.sinaTrack('whatsapp_click');
+    }
     window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg), '_blank');
   }
 
@@ -1760,6 +1771,13 @@
     ]);
   });
 </script>
+
+
+<!-- SINA · Marketing tracking (atribucion web -> WhatsApp -> pedido) -->
+<script defer
+  data-endpoint="https://app.gruposina.cl/api/marketing/track"
+  data-wa-phone="56991859095"
+  src="https://app.gruposina.cl/sina-track.js"></script>
 
 </body>
 </html>
