@@ -1861,6 +1861,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   });
 
   /* ────────────────────────────────────────────────────────────────
+     tracking_ref — fuente ÚNICA de verdad: el snippet sina-track.js
+     La ref que aparece en el mensaje de WhatsApp (SN-XXXXXX o sr_XXX_YYY,
+     dependiendo de la versión del snippet cacheada) es la que anexa
+     window.sinaTagMessage(). Debemos enviar EXACTAMENTE la misma en el
+     payload para que el ERP pueda cerrar el ciclo web → WA → cotización.
+
+     Prioridad:
+       1. window.sinaGetRef()               — API pública del snippet.
+       2. localStorage.getItem('sina_attr') — storage donde vive `ref`
+                                              (formato legacy y actual).
+     Retorna null si el snippet no está cargado (nunca inventamos otra ref).
+     ──────────────────────────────────────────────────────────────── */
+  function readTrackingRef(){
+    try {
+      if (typeof window.sinaGetRef === 'function') {
+        var r = window.sinaGetRef();
+        if (r) return String(r);
+      }
+    } catch(e){}
+    try {
+      var raw = localStorage.getItem('sina_attr');
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      return (obj && obj.ref) ? String(obj.ref) : null;
+    } catch(e){ return null; }
+  }
+
+  /* ────────────────────────────────────────────────────────────────
      request_id — SINA-WQ-YYYYMMDD-XXXXXX (base32 sin ambiguos)
      ──────────────────────────────────────────────────────────────── */
   var REF_CHARS = '23456789ABCDEFGHJKLMNPQRSTVWXYZ';
@@ -2018,10 +2046,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       has_fbclid: !!attr.last_touch.fbclid
     });
 
-    /* Persistencia — CON PII, va server-side (no a dataLayer) */
+    /* Persistencia — CON PII, va server-side (no a dataLayer)
+       tracking_ref: es EXACTAMENTE la misma ref que aparecerá en el mensaje
+                     de WhatsApp (anexada por window.sinaTagMessage). Con
+                     eso el ERP puede matchear request_id o tracking_ref
+                     contra marketing_web_events.
+       Los flat fields (utm_*/gclid/gbraid/wbraid/fbclid) se sacan de
+       last_touch con fallback a first_touch. Son redundantes con los jsonb
+       first_touch/last_touch pero el ERP los quiere planos para indexar/reportar. */
+    var lt = attr.last_touch  || {};
+    var ft = attr.first_touch || {};
     var payload = {
       event_type: 'quote_request_whatsapp',
       request_id: requestId,
+      tracking_ref: readTrackingRef(),
       form_location: formLocation,
       cta_source: ctaSource,
       color: values.color || null,
@@ -2032,10 +2070,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       contact_name: values.nombre || null,
       additional_detail: values.detalle || null,
       first_touch: attr.first_touch,
-      last_touch: attr.last_touch,
+      last_touch:  attr.last_touch,
       landing_page: attr.initial_landing_page,
       referrer: attr.first_touch.referrer,
-      timestamp: nowIso()
+      timestamp: nowIso(),
+      utm_source:   lt.utm_source   || ft.utm_source   || null,
+      utm_medium:   lt.utm_medium   || ft.utm_medium   || null,
+      utm_campaign: lt.utm_campaign || ft.utm_campaign || null,
+      utm_content:  lt.utm_content  || ft.utm_content  || null,
+      utm_term:     lt.utm_term     || ft.utm_term     || null,
+      gclid:        lt.gclid        || ft.gclid        || null,
+      gbraid:       lt.gbraid       || ft.gbraid       || null,
+      wbraid:       lt.wbraid       || ft.wbraid       || null,
+      fbclid:       lt.fbclid       || ft.fbclid       || null
     };
     post(payload);
 
@@ -2081,7 +2128,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   window.SinaMarketing = {
     attr: attr,
     newRequestId: newRequestId,
-    version: '2.0.0'
+    readTrackingRef: readTrackingRef,
+    version: '2.1.0'
   };
 })();
 </script>
