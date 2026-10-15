@@ -559,42 +559,104 @@ Content-Type: text/plain; charset=utf-8
     }
     .color-modal__close:hover { background: rgba(0,0,0,.06); }
 
-    /* Hero: panel grande del color. Si no hay foto real, usamos un gradient
-       con "iluminación" + textura CSS opcional para los texturados. */
+    /* ─────────── Hero: foto real re-tintada por técnica "luminosity" ───────────
+       Se arma con <div class="cm-tint"> cuyo background es el color objetivo
+       y un <img> encima con `mix-blend-mode: luminosity` + grayscale, que
+       descarta el color original y adopta el nuevo manteniendo brillos.
+       Modificadores por terminación: mate, brillante, texturado, microtexturado,
+       metalizado. Ver JS renderColorPhotos() y los filtros abajo. */
     .color-modal__hero {
       position: relative;
       aspect-ratio: 16 / 10;
-      background: #DDD;
+      background: #111;
       overflow: hidden;
     }
-    .color-modal__hero-panel {
-      position: absolute; inset: 10%;
-      border-radius: 6px;
-      box-shadow:
-        0 20px 40px rgba(0,0,0,.25),
-        inset 0 2px 0 rgba(255,255,255,.12),
-        inset 0 -2px 0 rgba(0,0,0,.14);
+    .cm-tint {
+      position: relative; width: 100%; height: 100%;
+      overflow: hidden;
     }
-    .color-modal__hero-panel.textured {
+    .cm-tint img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    /* Técnica B base: luminosity + grayscale */
+    .cm-tint.brillante img {
+      mix-blend-mode: luminosity;
+      filter: grayscale(1) contrast(1.08) brightness(1.03);
+    }
+
+    /* ─── Achromáticos: fuera de la re-tinción ────────────────────
+       Para negros/blancos puros ningún blend mode produce bien el color.
+       Mostramos un panel sólido del color con un leve degradé de iluminación
+       (highlight arriba-izquierda, sombra abajo-derecha) y nada más.
+       Los thumbs también se ocultan porque no agregan info. */
+    .cm-tint.tone-dark img,
+    .cm-tint.tone-light img { display: none; }
+    .cm-tint.tone-dark::after,
+    .cm-tint.tone-light::after { display: none; }
+    .cm-tint.tone-dark {
       background-image:
-        radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
-        radial-gradient(rgba(0,0,0,.1)        1px, transparent 1px);
-      background-size: 4px 4px, 7px 7px;
-      background-position: 0 0, 2px 3px;
+        linear-gradient(135deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,.35) 100%);
     }
-    .color-modal__hero-panel.metallic {
-      background-image: linear-gradient(135deg,
-        rgba(255,255,255,.35) 0%,
-        rgba(255,255,255,0)   40%,
-        rgba(0,0,0,.15)       70%,
-        rgba(255,255,255,.2) 100%);
+    .cm-tint.tone-light {
+      background-image:
+        linear-gradient(135deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,.08) 100%);
     }
-    .color-modal__hero-shadow {
-      position: absolute; left: 10%; right: 10%; bottom: 6%;
-      height: 40px;
-      background: radial-gradient(ellipse at center, rgba(0,0,0,.25), transparent 70%);
-      filter: blur(6px);
+    /* Mate: menos contraste, baja levemente el brillo, saca el highlight metálico */
+    .cm-tint.mate img {
+      mix-blend-mode: luminosity;
+      filter: grayscale(1) contrast(0.92) brightness(0.98);
     }
+    /* Texturado: luminosity + overlay de grano SVG encima para dar textura */
+    .cm-tint.texturado img {
+      mix-blend-mode: luminosity;
+      filter: grayscale(1) contrast(0.98) brightness(1.0);
+    }
+    .cm-tint.texturado::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: 0.55;
+      mix-blend-mode: overlay;
+    }
+    /* Microtexturado: grano más fino, menos opacidad */
+    .cm-tint.microtexturado img {
+      mix-blend-mode: luminosity;
+      filter: grayscale(1) contrast(1.0) brightness(1.0);
+    }
+    .cm-tint.microtexturado::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='3.2' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.22 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: 0.5;
+      mix-blend-mode: overlay;
+    }
+    /* Metalizado: luminosity + sweep de reflejos diagonales */
+    .cm-tint.metalizado img {
+      mix-blend-mode: luminosity;
+      filter: grayscale(1) contrast(1.2) brightness(1.08);
+    }
+    .cm-tint.metalizado::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(115deg,
+        rgba(255,255,255,0.35) 0%,
+        rgba(255,255,255,0)    30%,
+        rgba(0,0,0,0.25)       55%,
+        rgba(255,255,255,0.25) 80%,
+        rgba(255,255,255,0)   100%);
+      mix-blend-mode: overlay;
+    }
+
+    /* Strip de thumbnails bajo el hero */
+    .cm-thumbs {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+      background: #000;
+    }
+    .cm-thumb {
+      position: relative; aspect-ratio: 4/3; cursor: pointer;
+      border: 0; padding: 0; overflow: hidden;
+      opacity: 0.85; transition: opacity .15s ease;
+    }
+    .cm-thumb.active { opacity: 1; box-shadow: inset 0 0 0 3px #fff; }
+    .cm-thumb:hover { opacity: 1; }
 
     .color-modal__body { padding: 20px 24px 28px; background: #F6F6F4; }
     .color-modal__title-row {
@@ -1871,10 +1933,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <button type="button" class="color-modal__close" aria-label="Cerrar" data-close-modal>✕</button>
     </div>
-    <div class="color-modal__hero">
-      <div class="color-modal__hero-panel" id="cmHeroPanel"></div>
-      <div class="color-modal__hero-shadow"></div>
-    </div>
+    <div class="color-modal__hero" id="cmHero"></div>
+    <div class="cm-thumbs" id="cmThumbs"></div>
     <div class="color-modal__body">
       <div class="color-modal__title-row">
         <div class="color-modal__chip" id="cmChip"></div>
@@ -2076,6 +2136,193 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   const modal = document.getElementById('colorModal');
 
+  /* ─────────────────────────────────────────────────────────
+     Base de fotos para re-tinte (técnica B: luminosity + grayscale).
+     Dos escenas:
+       - panel: foto de panel estriado metálico — textura industrial pura
+       - sillas: aplicación en mobiliario — contexto de producto terminado
+     Se tiñen en vivo con el color del catálogo, respetando la terminación
+     (brillante / mate / texturado / microtexturado / metalizado).
+     ───────────────────────────────────────────────────────── */
+  const COLOR_PHOTOS = [
+    { id: 'pieza', src: '/assets/color-base/pieza.jpg', label: 'Pieza mecánica' },
+    { id: 'muro',  src: '/assets/color-base/muro.jpg',  label: 'Revestimiento' },
+  ];
+
+  /**
+   * Deriva la clase CSS modificadora según la terminación del color.
+   * Importante: lee desde entry.terminacion que viene de COLOR_META o
+   * de los defaults del grupo. Si no reconoce la terminación, cae a brillante.
+   */
+  function finishClass(entry) {
+    const t = (entry.terminacion || '').toLowerCase();
+    const name = (entry.name || '').toLowerCase();
+    if (entry.isMetallic || t.includes('metal'))        return 'metalizado';
+    if (t.includes('micro') || name.includes('micro'))  return 'microtexturado';
+    if (t.includes('textur') || entry.isTextured)       return 'texturado';
+    if (t.includes('mate'))                             return 'mate';
+    return 'brillante';
+  }
+
+  /**
+   * Clase tonal: necesaria para colores achromáticos o cercanos.
+   * Para blancos/negros/grises, `luminosity` solo aporta hue (que no existe) y
+   * el resultado se ve gris. Con `tone-dark`/`tone-light` cambiamos el blend
+   * mode para preservar la tonalidad real del color objetivo.
+   */
+  function toneClass(hex) {
+    const [r, g, b] = hexToRgb(hex);
+    const lum = 0.299*r + 0.587*g + 0.114*b;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    const sat = mx === 0 ? 0 : (mx - mn) / mx;
+    // Umbrales: achromatic + muy oscuro / muy claro
+    if (sat < 0.12 && lum < 65)  return 'tone-dark';
+    if (sat < 0.12 && lum > 210) return 'tone-light';
+    return '';
+  }
+
+  function renderColorPhotos(entry, activeId) {
+    const tone = toneClass(entry.hex);
+    const cls = finishClass(entry) + ' ' + tone;
+    const active = COLOR_PHOTOS.find(p => p.id === activeId) || COLOR_PHOTOS[0];
+
+    // Hero
+    const heroHtml =
+      '<div class="cm-tint ' + cls + '" style="background:' + entry.hex + '">' +
+        '<img src="' + active.src + '" alt="' + escapeHtml(entry.name) + ' aplicado en ' + active.label + '">' +
+      '</div>';
+    document.getElementById('cmHero').innerHTML = heroHtml;
+
+    // Thumbs — se ocultan para achromáticos (negro/blanco puros) porque no
+    // mostramos foto re-tintada, solo panel sólido.
+    const thumbsEl = document.getElementById('cmThumbs');
+    if (tone === 'tone-dark' || tone === 'tone-light') {
+      thumbsEl.innerHTML = '';
+      thumbsEl.style.display = 'none';
+      return;
+    }
+    thumbsEl.style.display = '';
+    thumbsEl.innerHTML = COLOR_PHOTOS.map(p =>
+      '<button type="button" class="cm-thumb ' + (p.id === active.id ? 'active' : '') + '" data-photo-id="' + p.id + '" aria-label="Ver ' + p.label + '">' +
+        '<div class="cm-tint ' + cls + '" style="background:' + entry.hex + '">' +
+          '<img src="' + p.src + '" alt="">' +
+        '</div>' +
+      '</button>'
+    ).join('');
+    // Click en thumb = re-renderizar con otro activo
+    thumbsEl.querySelectorAll('.cm-thumb').forEach(btn => {
+      btn.addEventListener('click', () => renderColorPhotos(entry, btn.dataset.photoId));
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  /* El generador SVG anterior se mantiene como fallback por si algún día
+     querés mostrar la vista "panel pintado" sintético. No se usa por default. */
+  function generateMetalPanelSvg(entry) {
+    const base = entry.hex;
+    const [r, g, b] = hexToRgb(base);
+    // Luminancia percibida para saber si el color es oscuro o claro
+    const lum = 0.299*r + 0.587*g + 0.114*b;
+    const isDark = lum < 100;
+    // Highlight: para colores claros, blanco translúcido; para oscuros, un blanco más intenso
+    const hiAlpha = isDark ? 0.22 : 0.14;
+    // Shadow: oscurecemos la cara derecha e inferior
+    const shAlpha = isDark ? 0.35 : 0.30;
+    // Metal edge: cantos de acero crudo expuestos (gris frío). Más visible en colores oscuros.
+    const edgeTop = '#D7D8DA';
+    const edgeMid = '#9FA3A8';
+    const edgeDark = '#6E7278';
+    // Textura (micro-puntos) solo si corresponde
+    const textureFill = entry.isTextured ? `url(#tex-${entry.name.replace(/\W/g,'')})` : null;
+    const metallicSweep = entry.isMetallic;
+
+    // IDs únicos por color para no mezclar <defs> entre modales reabiertos
+    const uid = 'c' + Math.abs(hashCode(entry.name)).toString(36);
+
+    return `
+    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Fondo tipo concreto/cemento -->
+        <radialGradient id="bg-${uid}" cx="30%" cy="20%" r="120%">
+          <stop offset="0%"  stop-color="#EEECE7"/>
+          <stop offset="55%" stop-color="#D4D1CB"/>
+          <stop offset="100%" stop-color="#A8A5A0"/>
+        </radialGradient>
+        <!-- Grano del concreto -->
+        <filter id="grain-${uid}">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+          <feColorMatrix values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.08 0"/>
+          <feComposite in2="SourceGraphic" operator="in"/>
+        </filter>
+        <!-- Iluminación top-left del panel pintado -->
+        <linearGradient id="light-${uid}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"  stop-color="rgba(255,255,255,${hiAlpha})"/>
+          <stop offset="45%" stop-color="rgba(255,255,255,0)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,${shAlpha * 0.35})"/>
+        </linearGradient>
+        <!-- Sweep metalizado opcional -->
+        <linearGradient id="sweep-${uid}" x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0%"  stop-color="rgba(255,255,255,0.25)"/>
+          <stop offset="40%" stop-color="rgba(255,255,255,0)"/>
+          <stop offset="60%" stop-color="rgba(0,0,0,0.15)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.3)"/>
+        </linearGradient>
+        <!-- Micro-textura (puntos) para colores texturados -->
+        <pattern id="tex-${entry.name.replace(/\W/g,'')}" patternUnits="userSpaceOnUse" width="6" height="6">
+          <rect width="6" height="6" fill="${base}"/>
+          <circle cx="1.5" cy="1.5" r="0.6" fill="rgba(255,255,255,0.08)"/>
+          <circle cx="4" cy="3.5" r="0.5" fill="rgba(0,0,0,0.1)"/>
+          <circle cx="2.5" cy="5" r="0.4" fill="rgba(0,0,0,0.07)"/>
+        </pattern>
+        <!-- Sombra proyectada -->
+        <radialGradient id="drop-${uid}" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(0,0,0,0.45)"/>
+          <stop offset="70%" stop-color="rgba(0,0,0,0.08)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Fondo -->
+      <rect width="800" height="500" fill="url(#bg-${uid})"/>
+      <rect width="800" height="500" filter="url(#grain-${uid})"/>
+
+      <!-- Sombra proyectada bajo el panel -->
+      <ellipse cx="420" cy="430" rx="330" ry="26" fill="url(#drop-${uid})"/>
+
+      <!-- Canto inferior-derecho del metal (visible porque el panel está en perspectiva) -->
+      <!-- cara frontal (canto): va de abajo-izquierda del panel pintado a la base inferior -->
+      <polygon points="110,420 740,420 750,440 100,440" fill="${edgeDark}"/>
+      <polygon points="110,420 740,420 745,428 105,428" fill="${edgeMid}"/>
+
+      <!-- Panel pintado (cara superior) -->
+      <!-- Perspectiva: trapecio con punto de fuga hacia arriba-centro -->
+      <polygon points="170,90 650,90 740,420 110,420"
+               fill="${textureFill || base}" />
+      <!-- Iluminación encima -->
+      <polygon points="170,90 650,90 740,420 110,420"
+               fill="url(#light-${uid})" />
+      ${metallicSweep ? `<polygon points="170,90 650,90 740,420 110,420" fill="url(#sweep-${uid})" opacity="0.9"/>` : ''}
+
+      <!-- Highlight sutil del borde superior del panel (línea de luz) -->
+      <line x1="170" y1="91" x2="650" y2="91" stroke="rgba(255,255,255,${hiAlpha + 0.1})" stroke-width="1"/>
+
+      <!-- Borde fino para separar visualmente del fondo -->
+      <polygon points="170,90 650,90 740,420 110,420"
+               fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="0.6"/>
+
+      <!-- Canto lateral derecho (sutil, da sensación de grosor del metal) -->
+      <polygon points="740,420 650,90 655,95 745,423" fill="${edgeMid}" opacity="0.85"/>
+    </svg>`;
+  }
+
+  function hashCode(s) {
+    let h = 0; for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0;
+    return h;
+  }
+
   function openColorModal(entry) {
     document.getElementById('colorModalTitle').textContent = entry.name;
     document.getElementById('cmSubtitle').textContent = entry.code ? entry.code + (entry.terminacion ? ' · ' + entry.terminacion : '') : entry.terminacion;
@@ -2085,17 +2332,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById('cmMant').textContent = entry.mantenimiento;
     document.getElementById('cmChip').style.background = entry.hex;
 
-    // Hero: foto si existe, si no, panel del color
-    const heroPanel = document.getElementById('cmHeroPanel');
-    heroPanel.className = 'color-modal__hero-panel' +
-      (entry.isTextured ? ' textured' : '') +
-      (entry.isMetallic ? ' metallic' : '');
-    heroPanel.style.background = entry.hex;
-    if (entry.photo) {
-      heroPanel.style.backgroundImage = 'url("' + entry.photo + '")';
-      heroPanel.style.backgroundSize = 'cover';
-      heroPanel.style.backgroundPosition = 'center';
-    }
+    // Hero + thumbnails: dos fotos re-tintadas con la terminación del color.
+    renderColorPhotos(entry);
 
     // CTA WhatsApp
     const cta = document.getElementById('cmCta');
