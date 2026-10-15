@@ -497,6 +497,9 @@ Content-Type: text/plain; charset=utf-8
       transform: scale(1.12);
       box-shadow: 0 6px 18px rgba(0,0,0,.18);
     }
+    /* Hacemos todo el swatch clickeable — el handler se adjunta por JS. */
+    .color-swatch { cursor: pointer; }
+    .color-swatch:focus-visible { outline: 2px solid var(--navy); outline-offset: 4px; border-radius: 8px; }
     .swatch-name {
       font-size: 10px;
       font-weight: 600;
@@ -506,6 +509,169 @@ Content-Type: text/plain; charset=utf-8
       line-height: 1.3;
       letter-spacing: .02em;
     }
+
+    /* ─── MODAL DE DETALLE DE COLOR ─────────────────────── */
+    .color-modal {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15, 20, 30, .55);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 0;
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+    .color-modal.open { display: flex; opacity: 1; }
+    .color-modal__panel {
+      background: #F6F6F4;
+      width: 100%; max-width: 740px;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      animation: cm-slide-up .22s ease;
+    }
+    @media (min-width: 740px) {
+      .color-modal { padding: 32px 16px 48px; align-items: center; }
+      .color-modal__panel { min-height: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 72px rgba(0,0,0,.3); }
+    }
+    @keyframes cm-slide-up {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .color-modal__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      background: #F6F6F4;
+      position: sticky; top: 0; z-index: 2;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+    .color-modal__brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; letter-spacing: .04em;
+      color: var(--navy); font-size: 15px;
+    }
+    .color-modal__brand img { height: 20px; width: auto; }
+    .color-modal__close {
+      background: none; border: 0; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--navy); font-size: 22px; line-height: 1;
+    }
+    .color-modal__close:hover { background: rgba(0,0,0,.06); }
+
+    /* Hero: panel grande del color. Si no hay foto real, usamos un gradient
+       con "iluminación" + textura CSS opcional para los texturados. */
+    .color-modal__hero {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      background: #DDD;
+      overflow: hidden;
+    }
+    .color-modal__hero-panel {
+      position: absolute; inset: 10%;
+      border-radius: 6px;
+      box-shadow:
+        0 20px 40px rgba(0,0,0,.25),
+        inset 0 2px 0 rgba(255,255,255,.12),
+        inset 0 -2px 0 rgba(0,0,0,.14);
+    }
+    .color-modal__hero-panel.textured {
+      background-image:
+        radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+        radial-gradient(rgba(0,0,0,.1)        1px, transparent 1px);
+      background-size: 4px 4px, 7px 7px;
+      background-position: 0 0, 2px 3px;
+    }
+    .color-modal__hero-panel.metallic {
+      background-image: linear-gradient(135deg,
+        rgba(255,255,255,.35) 0%,
+        rgba(255,255,255,0)   40%,
+        rgba(0,0,0,.15)       70%,
+        rgba(255,255,255,.2) 100%);
+    }
+    .color-modal__hero-shadow {
+      position: absolute; left: 10%; right: 10%; bottom: 6%;
+      height: 40px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,.25), transparent 70%);
+      filter: blur(6px);
+    }
+
+    .color-modal__body { padding: 20px 24px 28px; background: #F6F6F4; }
+    .color-modal__title-row {
+      display: flex; align-items: center; gap: 18px;
+      margin-bottom: 14px;
+    }
+    .color-modal__chip {
+      width: 86px; height: 86px; border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 4px 14px rgba(0,0,0,.15);
+      flex-shrink: 0;
+    }
+    .color-modal__title h3 {
+      font-size: 26px; font-weight: 700; color: var(--navy);
+      margin: 0; line-height: 1.1;
+    }
+    .color-modal__title p {
+      font-size: 15px; color: var(--gray); margin: 4px 0 0;
+    }
+    .color-modal__desc {
+      font-size: 14.5px; line-height: 1.6;
+      color: var(--dark); margin: 14px 0 22px;
+    }
+    .color-modal__specs {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; padding: 18px 0;
+      border-top: 1px solid rgba(0,0,0,.06);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .color-modal__spec {
+      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+    }
+    .color-modal__spec-icon {
+      font-size: 20px; color: var(--navy);
+    }
+    .color-modal__spec-label {
+      font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--gray);
+    }
+    .color-modal__spec-value {
+      font-size: 14px; font-weight: 600; color: var(--dark);
+    }
+    .color-modal__cta {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      background: var(--navy); color: #fff;
+      padding: 16px 20px; border-radius: 12px;
+      font-size: 15px; font-weight: 700; letter-spacing: .04em;
+      margin: 22px 0 10px;
+      border: 0; cursor: pointer;
+      transition: filter .15s ease;
+    }
+    .color-modal__cta:hover { filter: brightness(1.1); }
+
+    .color-modal__similar-title {
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--gray); margin: 20px 0 12px;
+    }
+    .color-modal__similar {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    }
+    .color-modal__similar-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      cursor: pointer; background: none; border: 0; padding: 4px;
+    }
+    .color-modal__similar-item .chip {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      transition: transform .15s ease;
+    }
+    .color-modal__similar-item:hover .chip { transform: scale(1.1); }
+    .color-modal__similar-item span {
+      font-size: 10.5px; color: var(--gray); line-height: 1.25; text-align: center;
+      max-width: 70px;
+    }
+    body.modal-open { overflow: hidden; }
     .colors-cta {
       text-align: center;
       margin-top: 52px;
@@ -1690,6 +1856,62 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 
 <!-- ═══════════════════════════════════════════════════════
+     MODAL DE DETALLE DE COLOR
+     Se abre al hacer clic en cualquier .color-swatch.
+     Se construye en runtime desde los swatches ya renderizados —
+     no hay que editar HTML para agregar/quitar colores.
+══════════════════════════════════════════════════════════ -->
+<div class="color-modal" id="colorModal" role="dialog" aria-modal="true" aria-labelledby="colorModalTitle">
+  <div class="color-modal__panel">
+    <div class="color-modal__header">
+      <div class="color-modal__brand">
+        <img src="/assets/favicon.svg" alt="" aria-hidden="true"
+             onerror="this.style.display='none'">
+        SINA
+      </div>
+      <button type="button" class="color-modal__close" aria-label="Cerrar" data-close-modal>✕</button>
+    </div>
+    <div class="color-modal__hero">
+      <div class="color-modal__hero-panel" id="cmHeroPanel"></div>
+      <div class="color-modal__hero-shadow"></div>
+    </div>
+    <div class="color-modal__body">
+      <div class="color-modal__title-row">
+        <div class="color-modal__chip" id="cmChip"></div>
+        <div class="color-modal__title">
+          <h3 id="colorModalTitle">—</h3>
+          <p id="cmSubtitle">—</p>
+        </div>
+      </div>
+      <p class="color-modal__desc" id="cmDesc">—</p>
+      <div class="color-modal__specs">
+        <div class="color-modal__spec">
+          <div class="color-modal__spec-icon">▦</div>
+          <div class="color-modal__spec-label">Terminación</div>
+          <div class="color-modal__spec-value" id="cmTerm">—</div>
+        </div>
+        <div class="color-modal__spec">
+          <div class="color-modal__spec-icon">☀</div>
+          <div class="color-modal__spec-label">Uso</div>
+          <div class="color-modal__spec-value" id="cmUso">—</div>
+        </div>
+        <div class="color-modal__spec">
+          <div class="color-modal__spec-icon">◇</div>
+          <div class="color-modal__spec-label">Mantenimiento</div>
+          <div class="color-modal__spec-value" id="cmMant">—</div>
+        </div>
+      </div>
+      <button type="button" class="color-modal__cta" id="cmCta" data-sina-cta="color_modal_whatsapp">
+        COTIZAR ESTE COLOR →
+      </button>
+      <div class="color-modal__similar-title">Colores similares</div>
+      <div class="color-modal__similar" id="cmSimilar"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
 <script>
@@ -1732,6 +1954,185 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  /* ════════════════════════════════════════════════════════════
+     DETALLE DE COLOR (modal)
+     - Catálogo se arma leyendo los .color-swatch del DOM.
+     - Metadata extra (descripción, uso) va en COLOR_META más abajo
+       por nombre normalizado — si falta un color, se usan defaults
+       según el grupo (azules, blancos, etc.).
+     - "Colores similares" se calcula en runtime por distancia RGB.
+     - Para cambiar la foto hero de un color, agregarle `photo: '/assets/...'`
+       en COLOR_META[name]. Si no hay foto, se renderiza un panel con
+       el color + sombras + textura CSS si corresponde.
+     ════════════════════════════════════════════════════════════ */
+
+  // Metadata adicional por nombre. Lo que no esté acá cae a defaults.
+  const COLOR_META = {
+    // Blancos
+    'Blanco Brillante':         { desc: 'Blanco puro con terminación brillante. Ideal para espacios luminosos, maquinaria y mobiliario donde se busca alta reflexión de luz.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Blanco Mate':              { desc: 'Blanco con acabado mate que reduce reflejos. Elegante para muebles, puertas y revestimientos modernos.', terminacion: 'Mate', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Blanco Micro':             { desc: 'Blanco con fina micro-textura que disimula marcas y huellas. Excelente para alto tránsito.', terminacion: 'Micro-texturado', uso: 'Interior/Exterior', mantenimiento: 'Muy fácil' },
+    'Blanco 9010 Texturado':    { desc: 'Blanco RAL 9010 con terminación texturada de alta resistencia. Perfecto para estructuras metálicas expuestas.', terminacion: 'Texturado', uso: 'Interior/Exterior', mantenimiento: 'Muy fácil' },
+    // Negros
+    'Negro Brillante':          { desc: 'Negro profundo con brillo espejo. Acabado premium para elementos decorativos y mobiliario.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Media' },
+    'Negro Mate':               { desc: 'Negro mate contemporáneo, sin reflejos. Un clásico para muebles, barandas y luminarias.', terminacion: 'Mate', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Negro Micro':              { desc: 'Negro con micro-textura que oculta imperfecciones y huellas digitales.', terminacion: 'Micro-texturado', uso: 'Interior/Exterior', mantenimiento: 'Muy fácil' },
+    'Negro Texturado':          { desc: 'Negro texturizado de alta dureza, resistente a rayones. Ideal para industria.', terminacion: 'Texturado', uso: 'Interior/Exterior', mantenimiento: 'Muy fácil' },
+    // Rojos / Naranjos / Amarillos — señalización y acentos
+    'Rojo 3020':                { desc: 'Rojo RAL 3020 — rojo tránsito, alta visibilidad. Estándar para equipamiento de seguridad.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Naranjo 2004':             { desc: 'Naranjo RAL 2004 puro, muy saturado. Para equipamiento, señalización y acentos industriales.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Amarillo 1003':            { desc: 'Amarillo RAL 1003 — amarillo señalización. Alta visibilidad para áreas de seguridad.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    'Amarillo 1018':            { desc: 'Amarillo RAL 1018, tono zinc. Clásico para maquinaria y estructuras.', terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza' },
+    // Especiales
+    'Dorado':                   { desc: 'Dorado metalizado para apliques y detalles decorativos. Alto impacto visual.', terminacion: 'Metalizado', uso: 'Interior', mantenimiento: 'Media' },
+    'Plata Cromo':              { desc: 'Plata cromo metalizado. Efecto espejo satinado para piezas premium.', terminacion: 'Metalizado', uso: 'Interior', mantenimiento: 'Media' },
+  };
+
+  // Defaults por grupo si el color no está en COLOR_META.
+  const GROUP_DEFAULTS = {
+    'Blancos':  { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Blanco de alta cobertura para proyectos industriales y arquitectónicos.' },
+    'Negros':   { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Negro de alta durabilidad para múltiples aplicaciones.' },
+    'Grises':   { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Gris estándar de uso industrial. Buena resistencia y rendimiento.' },
+    'Azules':   { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Azul de alta resistencia. Ideal para muebles, puertas y revestimientos.' },
+    'Verdes':   { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Verde de alta cobertura y durabilidad.' },
+    'Especiales': { terminacion: 'Metalizado', uso: 'Interior', mantenimiento: 'Media', desc: 'Terminación especial de alto impacto decorativo.' },
+    '_':        { terminacion: 'Brillante', uso: 'Interior/Exterior', mantenimiento: 'Fácil limpieza', desc: 'Pintura en polvo de alta durabilidad y cobertura.' },
+  };
+
+  // Grupos cuyos colores se renderizan con tratamiento metalizado en el hero.
+  const METALLIC_NAMES = new Set(['Dorado', 'Plata Cromo']);
+
+  // Build index desde el DOM
+  const CATALOG = [];
+  document.querySelectorAll('.color-swatches').forEach(swGroup => {
+    // El título del grupo es el .color-group-title hermano previo
+    const groupTitleEl = swGroup.parentElement && swGroup.parentElement.querySelector('.color-group-title');
+    const group = groupTitleEl ? groupTitleEl.textContent.trim() : '_';
+    swGroup.querySelectorAll('.color-swatch').forEach(sw => {
+      const circle = sw.querySelector('.swatch-circle');
+      const nameEl = sw.querySelector('.swatch-name');
+      if (!circle || !nameEl) return;
+      // Extraemos el hex del style.background (puede venir como #RRGGBB o rgb())
+      const bg = circle.getAttribute('style') || '';
+      const hexMatch = bg.match(/#([0-9A-Fa-f]{3,6})/);
+      let hex = hexMatch ? hexMatch[0] : rgbToHex(window.getComputedStyle(circle).backgroundColor);
+      const name = nameEl.textContent.trim();
+      // Código RAL si el nombre contiene 4 dígitos
+      const ralMatch = name.match(/\b(\d{4})\b/);
+      const code = ralMatch ? ('RAL ' + ralMatch[1]) : '';
+      // Textura si el nombre lo menciona
+      const isTextured = /textur|micro|mt\b/i.test(name);
+      const isMetallic = METALLIC_NAMES.has(name);
+      const meta = COLOR_META[name] || GROUP_DEFAULTS[group] || GROUP_DEFAULTS['_'];
+      const entry = {
+        name, hex, group, code,
+        terminacion: meta.terminacion,
+        uso: meta.uso,
+        mantenimiento: meta.mantenimiento,
+        desc: meta.desc,
+        isTextured, isMetallic,
+        photo: meta.photo || null,
+        el: sw,
+      };
+      CATALOG.push(entry);
+      // Hacer el swatch accesible por teclado y clickeable
+      sw.setAttribute('role', 'button');
+      sw.setAttribute('tabindex', '0');
+      sw.setAttribute('aria-label', 'Ver detalle de ' + name);
+      sw.addEventListener('click', () => openColorModal(entry));
+      sw.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openColorModal(entry); }
+      });
+    });
+  });
+
+  function rgbToHex(rgb) {
+    const m = rgb && rgb.match(/\d+/g);
+    if (!m || m.length < 3) return '#CCCCCC';
+    return '#' + m.slice(0,3).map(n => (+n).toString(16).padStart(2,'0')).join('').toUpperCase();
+  }
+
+  function hexToRgb(hex) {
+    let h = hex.replace('#','');
+    if (h.length === 3) h = h.split('').map(c => c+c).join('');
+    const n = parseInt(h, 16);
+    return [(n>>16)&255, (n>>8)&255, n&255];
+  }
+
+  function colorDistance(a, b) {
+    const r1 = hexToRgb(a), r2 = hexToRgb(b);
+    return Math.sqrt((r1[0]-r2[0])**2 + (r1[1]-r2[1])**2 + (r1[2]-r2[2])**2);
+  }
+
+  function findSimilar(entry, n = 5) {
+    return CATALOG
+      .filter(c => c.name !== entry.name)
+      .map(c => ({ c, d: colorDistance(entry.hex, c.hex) }))
+      .sort((a,b) => a.d - b.d)
+      .slice(0, n)
+      .map(x => x.c);
+  }
+
+  const modal = document.getElementById('colorModal');
+
+  function openColorModal(entry) {
+    document.getElementById('colorModalTitle').textContent = entry.name;
+    document.getElementById('cmSubtitle').textContent = entry.code ? entry.code + (entry.terminacion ? ' · ' + entry.terminacion : '') : entry.terminacion;
+    document.getElementById('cmDesc').textContent = entry.desc;
+    document.getElementById('cmTerm').textContent = entry.terminacion;
+    document.getElementById('cmUso').textContent = entry.uso;
+    document.getElementById('cmMant').textContent = entry.mantenimiento;
+    document.getElementById('cmChip').style.background = entry.hex;
+
+    // Hero: foto si existe, si no, panel del color
+    const heroPanel = document.getElementById('cmHeroPanel');
+    heroPanel.className = 'color-modal__hero-panel' +
+      (entry.isTextured ? ' textured' : '') +
+      (entry.isMetallic ? ' metallic' : '');
+    heroPanel.style.background = entry.hex;
+    if (entry.photo) {
+      heroPanel.style.backgroundImage = 'url("' + entry.photo + '")';
+      heroPanel.style.backgroundSize = 'cover';
+      heroPanel.style.backgroundPosition = 'center';
+    }
+
+    // CTA WhatsApp
+    const cta = document.getElementById('cmCta');
+    const msg = encodeURIComponent('Hola SINA, quiero cotizar el color ' + entry.name + (entry.code ? ' (' + entry.code + ')' : '') + '.');
+    cta.onclick = () => window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
+
+    // Similares
+    const simWrap = document.getElementById('cmSimilar');
+    simWrap.innerHTML = '';
+    findSimilar(entry).forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'color-modal__similar-item';
+      btn.innerHTML = '<span class="chip" style="background:' + c.hex + '"></span><span>' + c.name + '</span>';
+      btn.addEventListener('click', () => openColorModal(c));
+      simWrap.appendChild(btn);
+    });
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+    // scroll al tope del panel
+    const panel = modal.querySelector('.color-modal__panel');
+    if (panel) panel.scrollTop = 0;
+  }
+
+  function closeColorModal() {
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
+
+  // Cerrar: click en backdrop, botón ✕, tecla Escape
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal || e.target.hasAttribute('data-close-modal')) closeColorModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeColorModal();
+  });
 
   /* ── Helper: open WhatsApp with formatted message ── */
   function openWhatsApp(lines) {
