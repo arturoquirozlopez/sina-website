@@ -2395,14 +2395,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      SINA · Marketing attribution v2  (source of truth: index.html)
      ─────────────────────────────────────────────────────────────────────
      Este bloque COMPLEMENTA sina-track.js (cargado más abajo) y agrega:
-       - Distinción explícita quote_request_whatsapp vs whatsapp_click
+       - quote_form_submit al ERP al enviar el formulario de cotización
+       - quote_request_whatsapp al ERP en clicks de WhatsApp (data-sina-cta)
        - request_id único por cotización (SINA-WQ-YYYYMMDD-XXXXXX)
        - cta_source estable por CTA (data-sina-cta="...")
        - window.dataLayer.push() para GTM / GA4 / Meta (sin PII)
        - Botón "Preparando cotización..." + idempotencia + fallback timeout
-       - first_touch / last_touch estructurados (gbraid/wbraid/msclkid incluidos)
+       - first touch (gclid/gbraid/wbraid/fbclid/utm_* + landing_url + referrer)
+         en localStorage y cookie ~90 días, sin pisar la primera visita
      El endpoint de persistencia es el mismo del tracker existente:
        https://app.gruposina.cl/api/marketing/track
+       (text/plain;charset=UTF-8, body JSON). No usa Supabase ni /api/leads/webhook.
      NO se modifica app.gruposina.cl desde este archivo.
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
@@ -2417,20 +2420,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var WA_PHONE = '56927436006';
 
   /* ────────────────────────────────────────────────────────────────
-     ATRIBUCIÓN — first_touch / last_touch
-     Convive con `sina_attr` (localStorage) que escribe sina-track.js.
-     Añadimos keys que ese script no captura: gbraid, wbraid, msclkid,
-     initial_landing_page, first_visit_at, latest_visit_at.
+     ATRIBUCIÓN — first touch inmutable
+     sina-track.js persiste `sina_attr` (landing_url, utm_*, gclid, fbclid,
+     ref). Esas keys se reutilizan. Ese script pisa utm/gclid en visitas
+     posteriores y no guarda gbraid, wbraid, referrer ni cookie, así que
+     el first touch vive además en `sina_attr_v2` (localStorage) y en la
+     cookie `sina_first_touch` (~90 días). Ninguno de los dos se reescribe
+     una vez capturado.
      ──────────────────────────────────────────────────────────────── */
   var ATTR_KEY = 'sina_attr_v2';
+  var SINA_TRACK_KEY = 'sina_attr';
+  var FT_COOKIE = 'sina_first_touch';
   var TTL_MS = 90 * 86400000; // 90 días (compatible con ventanas de Google Ads)
+  var COOKIE_MAX_AGE = 90 * 86400;
+  var CLICK_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term',
+                    'gclid','gbraid','wbraid','fbclid','msclkid'];
 
   function readQuery(){
     var p = new URLSearchParams(location.search);
-    var keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term',
-                'gclid','gbraid','wbraid','fbclid','msclkid'];
     var out = {};
-    keys.forEach(function(k){ var v = p.get(k); if (v) out[k] = v; });
+    CLICK_KEYS.forEach(function(k){ var v = p.get(k); if (v) out[k] = v; });
     return out;
   }
   function loadAttr(){
@@ -2448,46 +2457,155 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
   function nowIso(){ return new Date().toISOString(); }
   function hasAny(o){
-    var keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term',
-                'gclid','gbraid','wbraid','fbclid','msclkid'];
-    for (var i=0;i<keys.length;i++) if (o[keys[i]]) return true;
+    if (!o) return false;
+    for (var i=0;i<CLICK_KEYS.length;i++) if (o[CLICK_KEYS[i]]) return true;
     return false;
+  }
+  function readCookie(name){
+    try {
+      var parts = (document.cookie || '').split('; ');
+      for (var i=0;i<parts.length;i++){
+        if (!parts[i]) continue;
+        var idx = parts[i].indexOf('=');
+        var k = idx < 0 ? parts[i] : parts[i].slice(0, idx);
+        if (k === name) return decodeURIComponent(idx < 0 ? '' : parts[i].slice(idx + 1));
+      }
+    } catch(e){}
+    return null;
+  }
+  function writeCookieOnce(name, value){
+    if (readCookie(name)) return;
+    try {
+      var secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = name + '=' + encodeURIComponent(value)
+        + '; Path=/; Max-Age=' + COOKIE_MAX_AGE + '; SameSite=Lax' + secure;
+    } catch(e){}
+  }
+  function readSinaTrackAttr(){
+    try {
+      var raw = localStorage.getItem(SINA_TRACK_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      if (!obj) return null;
+      if (obj.expires_at && Date.now() > obj.expires_at) return null;
+      return obj;
+    } catch(e){ return null; }
+  }
+  function pathFromUrl(url){
+    try {
+      var u = new URL(url, location.href);
+      return u.pathname + u.search;
+    } catch(e){ return location.pathname + location.search; }
+  }
+  /* Mismas keys que sina-track.js (`landing_url`, utm_*, gclid, fbclid) más
+     gbraid/wbraid/referrer, que ese snippet no persiste. */
+  function firstTouchFromSina(sa){
+    if (!sa || !sa.landing_url) return null;
+    return {
+      utm_source: sa.utm_source || null,
+      utm_medium: sa.utm_medium || null,
+      utm_campaign: sa.utm_campaign || null,
+      utm_content: sa.utm_content || null,
+      utm_term: sa.utm_term || null,
+      gclid: sa.gclid || null,
+      gbraid: sa.gbraid || null,
+      wbraid: sa.wbraid || null,
+      fbclid: sa.fbclid || null,
+      msclkid: sa.msclkid || null,
+      landing_url: sa.landing_url,
+      landing_page: pathFromUrl(sa.landing_url),
+      referrer: sa.referrer || null,
+      captured_at: sa.first_seen_at ? new Date(sa.first_seen_at).toISOString() : nowIso()
+    };
+  }
+  function readCookieFirstTouch(){
+    var raw = readCookie(FT_COOKIE);
+    if (!raw) return null;
+    try {
+      var obj = JSON.parse(raw);
+      if (!obj || typeof obj !== 'object') return null;
+      if (!obj.landing_url && !hasAny(obj)) return null;
+      if (!obj.landing_page && obj.landing_url) obj.landing_page = pathFromUrl(obj.landing_url);
+      if (!obj.captured_at) obj.captured_at = nowIso();
+      return obj;
+    } catch(e){ return null; }
+  }
+  function cookiePayload(ft){
+    ft = ft || {};
+    var keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term',
+                'gclid','gbraid','wbraid','fbclid','msclkid','landing_url','referrer'];
+    var out = {};
+    keys.forEach(function(k){ if (ft[k]) out[k] = ft[k]; });
+    return out;
+  }
+  function captureFirstTouch(){
+    return Object.assign({}, readQuery(), {
+      landing_page: location.pathname + location.search,
+      landing_url: location.href,
+      referrer: document.referrer || null,
+      captured_at: nowIso()
+    });
+  }
+  function applyVisit(record){
+    if (hasAny(qs)) {
+      record.last_touch = Object.assign({}, qs, {
+        landing_page: location.pathname + location.search,
+        landing_url: location.href,
+        referrer: document.referrer || null,
+        captured_at: nowIso()
+      });
+    }
+    record.latest_visit_at = nowIso();
+    record.current_page = location.pathname + location.search;
+    record.expires_at = Date.now() + TTL_MS;
+    return record;
   }
 
   var qs = readQuery();
   var existing = loadAttr();
   var attr;
-  if (existing){
+  if (existing && existing.first_touch){
     attr = existing;
-    // Last-touch: solo se actualiza si vinieron params atribuibles nuevos
-    if (hasAny(qs)) {
-      attr.last_touch = Object.assign({}, qs, {
-        landing_page: location.pathname + location.search,
-        referrer: document.referrer || null,
-        captured_at: nowIso()
-      });
-    }
-    attr.latest_visit_at = nowIso();
-    attr.current_page = location.pathname + location.search;
-    attr.expires_at = Date.now() + TTL_MS;
-    saveAttr(attr);
+    applyVisit(attr);
   } else {
-    // First touch (una única vez)
-    var ft = Object.assign({}, qs, {
-      landing_page: location.pathname + location.search,
-      referrer: document.referrer || null,
-      captured_at: nowIso()
-    });
+    var restored = readCookieFirstTouch() || firstTouchFromSina(readSinaTrackAttr()) || captureFirstTouch();
     attr = {
-      first_touch: ft,
-      last_touch: Object.assign({}, ft),
-      initial_landing_page: location.pathname + location.search,
+      first_touch: restored,
+      last_touch: Object.assign({}, restored),
+      initial_landing_page: restored.landing_page || (location.pathname + location.search),
       current_page: location.pathname + location.search,
-      first_visit_at: nowIso(),
+      first_visit_at: restored.captured_at || nowIso(),
       latest_visit_at: nowIso(),
       expires_at: Date.now() + TTL_MS
     };
-    saveAttr(attr);
+    applyVisit(attr);
+  }
+  saveAttr(attr);
+  var cookieBody = cookiePayload(attr.first_touch);
+  if (cookieBody.landing_url || hasAny(cookieBody)) {
+    writeCookieOnce(FT_COOKIE, JSON.stringify(cookieBody));
+  }
+
+  /* Campos planos que pide el ERP. Siempre el first touch, nunca el last. */
+  function erpAttribution(){
+    var ft = (attr && attr.first_touch) || {};
+    var landing = ft.landing_url || null;
+    if (!landing && ft.landing_page && String(ft.landing_page).charAt(0) === '/') {
+      landing = location.origin + ft.landing_page;
+    }
+    return {
+      gclid: ft.gclid || null,
+      gbraid: ft.gbraid || null,
+      wbraid: ft.wbraid || null,
+      fbclid: ft.fbclid || null,
+      landing_url: landing,
+      referrer: ft.referrer || null,
+      utm_source: ft.utm_source || null,
+      utm_medium: ft.utm_medium || null,
+      utm_campaign: ft.utm_campaign || null,
+      utm_term: ft.utm_term || null,
+      utm_content: ft.utm_content || null
+    };
   }
 
   /* Diagnóstico opcional en dataLayer — sin PII */
@@ -2581,6 +2699,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       has_gclid: !!attr.last_touch.gclid,
       has_fbclid: !!attr.last_touch.fbclid
     });
+
+    /* ERP: el click de WhatsApp es un evento distinto del submit del form.
+       No cancela la navegación ni el whatsapp_click que ya postea sina-track.js.
+       Sin empresa ni nombre el ERP puede rechazar el body; el catch lo ignora. */
+    try {
+      var href = el.getAttribute('href') || '';
+      var isWa = /wa\.me\/|api\.whatsapp\.com/i.test(href) || /whatsapp/i.test(ctaSource);
+      if (isWa) {
+        post(Object.assign({
+          event_type: 'quote_request_whatsapp',
+          request_id: newRequestId(),
+          tracking_ref: readTrackingRef(),
+          cta_source: ctaSource,
+          company: null,
+          contact_name: null,
+          email: null,
+          phone: null,
+          additional_detail: null
+        }, erpAttribution()));
+      }
+    } catch (e) {}
   }, { capture: true, passive: true });
 
   /* ────────────────────────────────────────────────────────────────
@@ -2686,18 +2825,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
 
     /* Persistencia — CON PII, va server-side (no a dataLayer).
+       event_type quote_form_submit es el contrato del ERP para el formulario.
+       El dataLayer sigue emitiendo quote_request_whatsapp (GTM / conversión).
        tracking_ref: es EXACTAMENTE la misma ref que aparecerá en el mensaje
                      de WhatsApp (anexada por window.sinaTagMessage). Con
                      eso el ERP puede matchear request_id o tracking_ref
                      contra marketing_web_events.
-       Los flat fields (utm_source, utm_medium, utm_campaign, utm_content,
-       utm_term, gclid, gbraid, wbraid, fbclid) se sacan de last_touch con
-       fallback a first_touch. Son redundantes con los jsonb first_touch y
-       last_touch, pero el ERP los quiere planos para indexar y reportar. */
-    var lt = attr.last_touch  || {};
-    var ft = attr.first_touch || {};
-    var payload = {
-      event_type: 'quote_request_whatsapp',
+       Los flat fields salen del first touch (no se pisan en visitas posteriores).
+       El POST es fire-and-forget: un fallo no bloquea ni rompe el WhatsApp. */
+    var phoneEl = form.querySelector('[name="phone"], [name="telefono"], [name="tel"], [name="celular"], [name="fono"]');
+    var phone = phoneEl ? (phoneEl.value || '').trim() : '';
+    var payload = Object.assign({
+      event_type: 'quote_form_submit',
       request_id: requestId,
       tracking_ref: readTrackingRef(),
       form_location: formLocation,
@@ -2706,24 +2845,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       quantity_kg: parseQuantityKg(values.cantidad),
       region: values.region || null,
       email: values.email || null,
+      phone: phone || null,
       company: values.empresa || null,
       contact_name: values.nombre || null,
       additional_detail: values.detalle || null,
       first_touch: attr.first_touch,
       last_touch:  attr.last_touch,
-      landing_page: attr.initial_landing_page,
-      referrer: attr.first_touch.referrer,
-      timestamp: nowIso(),
-      utm_source:   lt.utm_source   || ft.utm_source   || null,
-      utm_medium:   lt.utm_medium   || ft.utm_medium   || null,
-      utm_campaign: lt.utm_campaign || ft.utm_campaign || null,
-      utm_content:  lt.utm_content  || ft.utm_content  || null,
-      utm_term:     lt.utm_term     || ft.utm_term     || null,
-      gclid:        lt.gclid        || ft.gclid        || null,
-      gbraid:       lt.gbraid       || ft.gbraid       || null,
-      wbraid:       lt.wbraid       || ft.wbraid       || null,
-      fbclid:       lt.fbclid       || ft.fbclid       || null
-    };
+      timestamp: nowIso()
+    }, erpAttribution());
     post(payload);
 
     /* Guardar fingerprint idempotencia */
@@ -2769,7 +2898,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     attr: attr,
     newRequestId: newRequestId,
     readTrackingRef: readTrackingRef,
-    version: '2.1.2'
+    version: '2.2.0',
+    erpAttribution: erpAttribution
   };
 })();
 </script>
