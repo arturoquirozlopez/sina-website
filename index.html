@@ -2731,7 +2731,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function post(payload){
     var body = Object.assign({}, erpAttribution(), payload || {});
     body.ref = body.ref || (attr && attr.ref) || null;
-    body.tracking_ref = body.tracking_ref || body.ref;
+    /* tracking_ref y request_id son UNIQUE en marketing_web_events.
+       No copiar el ref de sesión: el page_view lo agotaría y el resto daría 500. */
+    if (!body.tracking_ref) delete body.tracking_ref;
+    if (!body.request_id) delete body.request_id;
     body.session_id = body.session_id || (attr && attr.session_id) || null;
     if (!body.page_url) body.page_url = location.href;
     if (!body.ref) return;
@@ -2816,6 +2819,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     post({
       event_type: 'quote_request_whatsapp',
       request_id: slot.id + '-LEAD',
+      tracking_ref: slot.id + '-LEAD',
       cta_source: ctaSource,
       company: 'Clic WhatsApp',
       contact_name: 'Clic WhatsApp',
@@ -2945,9 +2949,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     /* quote_form_submit crea el lead si hay empresa o nombre, con gclid/UTMs/landing_url.
        post() agrega ref (obligatorio) y la atribución de first touch. */
-    post({
+    if (!reuse) post({
       event_type: 'quote_form_submit',
       request_id: requestId,
+      tracking_ref: requestId,
       form_location: formLocation,
       cta_source: ctaSource,
       color: values.color || null,
@@ -3063,7 +3068,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     attr: attr,
     newRequestId: newRequestId,
     readTrackingRef: readTrackingRef,
-    version: '2.3.0',
+    version: '2.3.1',
     erpAttribution: erpAttribution
   };
 })();
