@@ -41,6 +41,23 @@ Este valor único controla **todos** los botones y formularios de WhatsApp del s
 
 ## Atribución de cotizaciones
 
-Al cargar la página se leen `gclid`, `gbraid`, `wbraid`, `fbclid` y `utm_*` de la URL, más `location.href` y `document.referrer`. La primera visita queda fija en `localStorage` (`sina_attr_v2`) y en la cookie `sina_first_touch` (~90 días); visitas posteriores no la pisan. Si `sina-track.js` ya guardó esos datos en `sina_attr` (`landing_url`, `utm_*`, `gclid`, `fbclid`, `ref`), se reutilizan esas keys.
+Al cargar la página se leen `gclid`, `gbraid`, `wbraid`, `fbclid` y `utm_*` de la URL, más `location.href` y `document.referrer`. La primera visita queda fija en `localStorage` (`sina_attr_v2`) y en la cookie `sina_first_touch` (~90 días); visitas posteriores no la pisan. Esos datos se envían en **todos** los eventos (`page_view`, `whatsapp_click`, `quote_form_start`, `quote_form_submit`).
 
-Al enviar el formulario `#cotizacion` (y el de la portada) el sitio hace `POST` a `https://app.gruposina.cl/api/marketing/track` con `Content-Type: text/plain;charset=UTF-8` y `event_type: quote_form_submit`, incluyendo empresa o nombre, email, teléfono, detalle, `request_id`, `tracking_ref` y la atribución de primera visita. Los clicks de WhatsApp envían `quote_request_whatsapp`. Si el POST falla, la cotización por WhatsApp sigue igual. No se escribe en Supabase ni se usa `/api/leads/webhook`. El `dataLayer` de GTM no cambia.
+Cada POST a `https://app.gruposina.cl/api/marketing/track` lleva `ref` (`SN-XXXXXX`). Sin `ref` el ERP responde 400 y no guarda nada. El formulario envía `quote_form_submit` (crea el lead si hay empresa o nombre, con gclid, UTMs y `landing_url`). El clic de WhatsApp envía `whatsapp_click` y, además, `quote_request_whatsapp` con empresa `Clic WhatsApp`: sin empresa ese evento responde 500 y no se persiste. El mensaje de WhatsApp incluye `Ref cotización: SN-…`.
+
+## Google Ads
+
+El config base `AW-18301590787` se carga en la página si todavía no hay un script de ese ID. Conversiones vía `gtag`:
+
+| Evento | send_to | Valor |
+| --- | --- | --- |
+| `cotizacion_enviada` | `AW-18301590787/UeiJCJik2aMdEIO68JZE` | 1 CLP |
+| `click_whatsapp` | `AW-18301590787/WOJaCJuk2aMdEIO68JZE` | — |
+
+El sitio es HTML estático y **no lee variables de Vercel**. Estos IDs están en `index.html` como valor por defecto. No hace falta definir en producción:
+
+- `NEXT_PUBLIC_GADS_ID=AW-18301590787`
+- `NEXT_PUBLIC_GADS_LABEL_QUOTE=UeiJCJik2aMdEIO68JZE`
+- `NEXT_PUBLIC_GADS_LABEL_WHATSAPP=WOJaCJuk2aMdEIO68JZE`
+
+Definirlas en Vercel no cambia el sitio mientras no exista un build que las inyecte. Si el ID o el label quedaran vacíos, la conversión no se dispara.

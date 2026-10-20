@@ -13,6 +13,33 @@ Content-Type: text/plain; charset=utf-8
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-PRT8JPH4');</script>
   <!-- End Google Tag Manager -->
+  <!-- Google Ads base config AW-18301590787.
+       GTM-PRT8JPH4 también declara este ID; si ese script ya está en la página
+       no se vuelve a insertar. Valores por defecto (el HTML estático no lee
+       env de Vercel): NEXT_PUBLIC_GADS_ID=AW-18301590787 -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+    (function(){
+      var id = 'AW-18301590787';
+      var hasScript = !!document.querySelector('script[src*="' + id + '"]');
+      if (!hasScript) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+        document.head.appendChild(s);
+      }
+      var already = false;
+      for (var i = 0; i < window.dataLayer.length; i++) {
+        var entry = window.dataLayer[i];
+        if (entry && entry[0] === 'config' && entry[1] === id) already = true;
+      }
+      if (!already) {
+        window.gtag('js', new Date());
+        window.gtag('config', id);
+      }
+    })();
+  </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SINA - Pintura Electrostática en Polvo</title>
@@ -2337,7 +2364,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     // CTA WhatsApp
     const cta = document.getElementById('cmCta');
-    const msg = encodeURIComponent('Hola SINA, quiero cotizar el color ' + entry.name + (entry.code ? ' (' + entry.code + ')' : '') + '.');
+    let text = 'Hola SINA, quiero cotizar el color ' + entry.name + (entry.code ? ' (' + entry.code + ')' : '') + '.';
+    if (typeof window.sinaTagMessage === 'function') text = window.sinaTagMessage(text);
+    const msg = encodeURIComponent(text);
     cta.onclick = () => window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
 
     // Similares
@@ -2394,19 +2423,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- ═══════════════════════════════════════════════════════════════════════
      SINA · Marketing attribution v2  (source of truth: index.html)
      ─────────────────────────────────────────────────────────────────────
-     Este bloque COMPLEMENTA sina-track.js (cargado más abajo) y agrega:
-       - quote_form_submit al ERP al enviar el formulario de cotización
-       - quote_request_whatsapp al ERP en clicks de WhatsApp (data-sina-cta)
+     Este bloque es la fuente de los eventos hacia el ERP (ya no carga sina-track.js,
+     para no duplicar page_view ni mandar un page_view sin gbraid/wbraid):
+       - page_view, quote_form_start y quote_form_submit
+       - whatsapp_click en cada clic de WhatsApp, más quote_request_whatsapp
+         con empresa "Clic WhatsApp" (sin empresa el ERP responde 500 y no guarda)
+       - ref SN-XXXXXX obligatorio en todos los POST
        - request_id único por cotización (SINA-WQ-YYYYMMDD-XXXXXX)
-       - cta_source estable por CTA (data-sina-cta="...")
-       - window.dataLayer.push() para GTM / GA4 / Meta (sin PII)
-       - Botón "Preparando cotización..." + idempotencia + fallback timeout
        - first touch (gclid/gbraid/wbraid/fbclid/utm_* + landing_url + referrer)
          en localStorage y cookie ~90 días, sin pisar la primera visita
-     El endpoint de persistencia es el mismo del tracker existente:
-       https://app.gruposina.cl/api/marketing/track
-       (text/plain;charset=UTF-8, body JSON). No usa Supabase ni /api/leads/webhook.
-     NO se modifica app.gruposina.cl desde este archivo.
+     Endpoint: https://app.gruposina.cl/api/marketing/track
+       (text/plain;charset=UTF-8, body JSON).
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
@@ -2435,6 +2462,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var COOKIE_MAX_AGE = 90 * 86400;
   var CLICK_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term',
                     'gclid','gbraid','wbraid','fbclid','msclkid'];
+
+  /* Defaults de las conversion actions ya creadas en Google Ads.
+     El sitio es HTML estático: no lee process.env ni las variables de Vercel.
+     NEXT_PUBLIC_GADS_ID=AW-18301590787
+     NEXT_PUBLIC_GADS_LABEL_QUOTE=UeiJCJik2aMdEIO68JZE          (cotizacion_enviada, value 1 CLP)
+     NEXT_PUBLIC_GADS_LABEL_WHATSAPP=WOJaCJuk2aMdEIO68JZE      (click_whatsapp)
+     Si no hay ID o label, la conversión no se dispara. */
+  var GADS_ID = 'AW-18301590787';
+  var GADS_LABEL_QUOTE = 'UeiJCJik2aMdEIO68JZE';
+  var GADS_LABEL_WHATSAPP = 'WOJaCJuk2aMdEIO68JZE';
+  var REF_CHARS = '23456789ABCDEFGHJKLMNPQRSTVWXYZ';
+
+  function newRef(){
+    var out = 'SN-';
+    var buf = new Uint8Array(6);
+    (window.crypto || window.msCrypto).getRandomValues(buf);
+    for (var i = 0; i < 6; i++) out += REF_CHARS[buf[i] % REF_CHARS.length];
+    return out;
+  }
+  function newSessionId(){
+    return 'sid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+  }
 
   function readQuery(){
     var p = new URLSearchParams(location.search);
@@ -2561,6 +2610,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return record;
   }
 
+  function ensureIdentity(record){
+    var legacy = readSinaTrackAttr();
+    if (!record.ref) record.ref = (legacy && legacy.ref) || newRef();
+    if (!record.session_id) record.session_id = (legacy && legacy.session_id) || newSessionId();
+    return record;
+  }
+
   var qs = readQuery();
   var existing = loadAttr();
   var attr;
@@ -2580,7 +2636,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
     applyVisit(attr);
   }
+  ensureIdentity(attr);
   saveAttr(attr);
+  try {
+    var legacyMirror = readSinaTrackAttr() || {};
+    legacyMirror.ref = attr.ref;
+    legacyMirror.session_id = attr.session_id;
+    legacyMirror.landing_url = (attr.first_touch && attr.first_touch.landing_url) || legacyMirror.landing_url || location.href;
+    legacyMirror.expires_at = attr.expires_at;
+    CLICK_KEYS.forEach(function(k){
+      if (attr.first_touch && attr.first_touch[k]) legacyMirror[k] = attr.first_touch[k];
+    });
+    localStorage.setItem(SINA_TRACK_KEY, JSON.stringify(legacyMirror));
+  } catch(e){}
   var cookieBody = cookiePayload(attr.first_touch);
   if (cookieBody.landing_url || hasAny(cookieBody)) {
     writeCookieOnce(FT_COOKIE, JSON.stringify(cookieBody));
@@ -2631,12 +2699,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      Retorna null si el snippet no está cargado (nunca inventamos otra ref).
      ──────────────────────────────────────────────────────────────── */
   function readTrackingRef(){
-    try {
-      if (typeof window.sinaGetRef === 'function') {
-        var r = window.sinaGetRef();
-        if (r) return String(r);
-      }
-    } catch(e){}
+    if (attr && attr.ref) return String(attr.ref);
     try {
       var raw = localStorage.getItem('sina_attr');
       if (!raw) return null;
@@ -2666,13 +2729,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      text/plain evita CORS preflight; el body sigue siendo JSON válido.
      ──────────────────────────────────────────────────────────────── */
   function post(payload){
+    var body = Object.assign({}, erpAttribution(), payload || {});
+    body.ref = body.ref || (attr && attr.ref) || null;
+    /* tracking_ref y request_id son UNIQUE en marketing_web_events.
+       No copiar el ref de sesión: el page_view lo agotaría y el resto daría 500. */
+    if (!body.tracking_ref) delete body.tracking_ref;
+    if (!body.request_id) delete body.request_id;
+    body.session_id = body.session_id || (attr && attr.session_id) || null;
+    if (!body.page_url) body.page_url = location.href;
+    if (!body.ref) return;
     try {
       fetch(ENDPOINT, {
         method: 'POST',
         mode: 'cors',
         keepalive: true,
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(body)
       }).catch(function(){});
     } catch(e){}
   }
@@ -2682,44 +2754,77 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      sina-track.js YA postea whatsapp_click al server. Nosotros SOLO
      agregamos el push a dataLayer con cta_source estable.
      ──────────────────────────────────────────────────────────────── */
+  function tagWaHref(a){
+    try {
+      var href = a.getAttribute('href') || '';
+      if (!/wa\.me\/|api\.whatsapp\.com/i.test(href)) return;
+      var url = new URL(href, location.href);
+      var textKey = url.searchParams.has('message') ? 'message' : 'text';
+      var base = url.searchParams.get(textKey) || 'Hola, quiero más info.';
+      var tagged = window.sinaTagMessage(base);
+      if (tagged === base) return;
+      url.searchParams.set(textKey, tagged);
+      a.setAttribute('href', url.toString());
+    } catch(e){}
+  }
+  function patchAllWaLinks(){
+    document.querySelectorAll('a[href*="wa.me/"], a[href*="api.whatsapp.com"]').forEach(tagWaHref);
+  }
+  function clickSlot(cta){
+    var key = 'sina_wa_click_' + cta;
+    try {
+      var last = JSON.parse(sessionStorage.getItem(key) || 'null');
+      if (last && last.rid && (Date.now() - last.ts) < IDEMPOTENCY_WINDOW_MS) {
+        return { id: last.rid, fresh: false };
+      }
+    } catch(e){}
+    var id = newRequestId();
+    try { sessionStorage.setItem(key, JSON.stringify({ rid: id, ts: Date.now() })); } catch(e){}
+    return { id: id, fresh: true };
+  }
+
   document.addEventListener('click', function(ev){
-    var el = ev.target && ev.target.closest ? ev.target.closest('[data-sina-cta]') : null;
+    var el = ev.target && ev.target.closest
+      ? ev.target.closest('[data-sina-cta], a[href*="wa.me/"], a[href*="api.whatsapp.com"]')
+      : null;
     if (!el) return;
-    // Los CTAs que son BUTTON SUBMIT dentro de un form estructurado los maneja el submit handler
-    var isFormSubmit = el.tagName === 'BUTTON' || el.getAttribute('type') === 'submit';
-    if (isFormSubmit) return;
-    var ctaSource = el.getAttribute('data-sina-cta') || 'unknown';
-    // Si el propio elemento es un <form>, el click es del botón interno — no push acá
+    /* El submit del formulario lo maneja handleQuoteSubmit. Los botones type=button (modal) sí. */
+    if (el.closest('form') && el.tagName === 'BUTTON' && el.getAttribute('type') !== 'button') return;
     if (el.tagName === 'FORM') return;
 
+    var ctaSource = el.getAttribute('data-sina-cta') || 'whatsapp_link';
+    var href = el.getAttribute('href') || '';
+    var isWa = /wa\.me\/|api\.whatsapp\.com/i.test(href) || /whatsapp/i.test(ctaSource);
+    if (!isWa) return;
+    if (el.tagName === 'A') tagWaHref(el);
+
+    var slot = clickSlot(ctaSource);
     window.dataLayer.push({
-      event: 'whatsapp_click',
+      event: 'click_whatsapp',
       cta_source: ctaSource,
       page_path: location.pathname,
-      has_gclid: !!attr.last_touch.gclid,
-      has_fbclid: !!attr.last_touch.fbclid
+      has_gclid: !!(attr.first_touch && (attr.first_touch.gclid || attr.first_touch.gbraid || attr.first_touch.wbraid)),
+      has_fbclid: !!(attr.first_touch && attr.first_touch.fbclid)
     });
+    fireAdsConversion('whatsapp', { transactionId: slot.id });
+    if (!slot.fresh) return;
 
-    /* ERP: el click de WhatsApp es un evento distinto del submit del form.
-       No cancela la navegación ni el whatsapp_click que ya postea sina-track.js.
-       Sin empresa ni nombre el ERP puede rechazar el body; el catch lo ignora. */
-    try {
-      var href = el.getAttribute('href') || '';
-      var isWa = /wa\.me\/|api\.whatsapp\.com/i.test(href) || /whatsapp/i.test(ctaSource);
-      if (isWa) {
-        post(Object.assign({
-          event_type: 'quote_request_whatsapp',
-          request_id: newRequestId(),
-          tracking_ref: readTrackingRef(),
-          cta_source: ctaSource,
-          company: null,
-          contact_name: null,
-          email: null,
-          phone: null,
-          additional_detail: null
-        }, erpAttribution()));
-      }
-    } catch (e) {}
+    /* whatsapp_click queda en marketing_web_events.
+       quote_request_whatsapp abre el lead: el ERP responde 500 si no hay empresa. */
+    post({
+      event_type: 'whatsapp_click',
+      request_id: slot.id,
+      cta_source: ctaSource
+    });
+    post({
+      event_type: 'quote_request_whatsapp',
+      request_id: slot.id + '-LEAD',
+      tracking_ref: slot.id + '-LEAD',
+      cta_source: ctaSource,
+      company: 'Clic WhatsApp',
+      contact_name: 'Clic WhatsApp',
+      additional_detail: 'Clic en WhatsApp (' + ctaSource + ')'
+    });
   }, { capture: true, passive: true });
 
   /* ────────────────────────────────────────────────────────────────
@@ -2787,6 +2892,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       region:   val('region'),
       detalle:  val('detalle')
     };
+    /* El ERP crea el lead si hay empresa o nombre. Email solo no alcanza. */
+    if (!values.empresa && !values.nombre) {
+      values.nombre = values.email || 'Cotización web';
+    }
 
     /* Idempotencia soft: si el usuario re-clickea sin cambiar nada en 60s,
        reutilizamos el mismo request_id (no genera duplicado de conversion). */
@@ -2811,34 +2920,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
     }
 
-    /* dataLayer push — SIN PII */
+    var phoneEl = form.querySelector('[name="phone"], [name="telefono"], [name="tel"], [name="celular"], [name="fono"]');
+    var phone = phoneEl ? (phoneEl.value || '').trim() : '';
+    var detailParts = [];
+    if (values.detalle) detailParts.push(values.detalle);
+    if (values.color) detailParts.push('Color: ' + values.color);
+    if (values.cantidad) detailParts.push('Cantidad: ' + values.cantidad);
+    if (values.region) detailParts.push('Región: ' + values.region);
+
+    /* dataLayer push — SIN PII. No usamos quote_request_whatsapp: GTM dispara
+       con ese nombre una conversion action distinta (label viejo). */
     window.dataLayer.push({
-      event: 'quote_request_whatsapp',
+      event: 'cotizacion_enviada',
       request_id: requestId,
       form_location: formLocation,
       cta_source: ctaSource,
       color: values.color || null,
       quantity_kg: parseQuantityKg(values.cantidad),
       region: values.region || null,
-      has_gclid: !!attr.last_touch.gclid,
-      has_fbclid: !!attr.last_touch.fbclid
+      has_gclid: !!(attr.first_touch && (attr.first_touch.gclid || attr.first_touch.gbraid || attr.first_touch.wbraid)),
+      has_fbclid: !!(attr.first_touch && attr.first_touch.fbclid)
+    });
+    fireAdsConversion('quote', {
+      transactionId: requestId,
+      email: values.email || null,
+      phone: phone || null
     });
 
-    /* Persistencia — CON PII, va server-side (no a dataLayer).
-       event_type quote_form_submit es el contrato del ERP para el formulario.
-       El dataLayer sigue emitiendo quote_request_whatsapp (GTM / conversión).
-       tracking_ref: es EXACTAMENTE la misma ref que aparecerá en el mensaje
-                     de WhatsApp (anexada por window.sinaTagMessage). Con
-                     eso el ERP puede matchear request_id o tracking_ref
-                     contra marketing_web_events.
-       Los flat fields salen del first touch (no se pisan en visitas posteriores).
-       El POST es fire-and-forget: un fallo no bloquea ni rompe el WhatsApp. */
-    var phoneEl = form.querySelector('[name="phone"], [name="telefono"], [name="tel"], [name="celular"], [name="fono"]');
-    var phone = phoneEl ? (phoneEl.value || '').trim() : '';
-    var payload = Object.assign({
+    /* quote_form_submit crea el lead si hay empresa o nombre, con gclid/UTMs/landing_url.
+       post() agrega ref (obligatorio) y la atribución de first touch. */
+    if (!reuse) post({
       event_type: 'quote_form_submit',
       request_id: requestId,
-      tracking_ref: readTrackingRef(),
+      tracking_ref: requestId,
       form_location: formLocation,
       cta_source: ctaSource,
       color: values.color || null,
@@ -2848,12 +2962,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       phone: phone || null,
       company: values.empresa || null,
       contact_name: values.nombre || null,
-      additional_detail: values.detalle || null,
+      additional_detail: detailParts.join(' · ') || null,
       first_touch: attr.first_touch,
-      last_touch:  attr.last_touch,
+      last_touch: attr.last_touch,
       timestamp: nowIso()
-    }, erpAttribution());
-    post(payload);
+    });
 
     /* Guardar fingerprint idempotencia */
     try {
@@ -2878,19 +2991,76 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     setTimeout(fire, 1200);  // safety second attempt (idempotente por flag)
   }
 
+  function normalizePhone(raw){
+    var d = String(raw || '').replace(/[^\d+]/g, '');
+    if (!d) return null;
+    if (d.charAt(0) === '+') return d;
+    if (d.indexOf('56') === 0) return '+' + d;
+    if (d.length === 9) return '+56' + d;
+    return '+' + d;
+  }
+  function fireAdsConversion(which, opts){
+    opts = opts || {};
+    if (typeof window.gtag !== 'function') return;
+    var label = which === 'quote' ? GADS_LABEL_QUOTE : GADS_LABEL_WHATSAPP;
+    if (!GADS_ID || !label) return;
+    if (opts.email || opts.phone) {
+      var user = {};
+      if (opts.email) user.email = String(opts.email).trim().toLowerCase();
+      var phoneE164 = opts.phone ? normalizePhone(opts.phone) : null;
+      if (phoneE164) user.phone_number = phoneE164;
+      if (user.email || user.phone_number) window.gtag('set', 'user_data', user);
+    }
+    var payload = { send_to: GADS_ID + '/' + label };
+    if (which === 'quote') {
+      payload.value = 1;
+      payload.currency = 'CLP';
+    }
+    if (opts.transactionId) payload.transaction_id = opts.transactionId;
+    window.gtag('event', 'conversion', payload);
+  }
+
+  function sinaTagMessage(msg){
+    var text = String(msg || '');
+    var ref = readTrackingRef();
+    if (!ref) return text;
+    if (text.indexOf(ref) !== -1 || text.indexOf('sina_ref=') !== -1) return text;
+    return text + (text ? '\n\n' : '') + 'Ref cotización: ' + ref;
+  }
+  window.sinaTagMessage = sinaTagMessage;
+  window.sinaGetRef = function(){ return readTrackingRef(); };
+  window.sinaTrack = function(eventType, extras){
+    post(Object.assign({ event_type: eventType || 'other' }, extras || {}));
+  };
+
+  /* page_view sale de esta página (ya no de sina-track.js) para incluir
+     gclid/gbraid/wbraid y utm_* del first touch en el mismo POST. */
+  post({ event_type: 'page_view' });
+
   function bindForm(id){
     var f = document.getElementById(id);
     if (!f) return;
+    var started = false;
+    f.addEventListener('focusin', function(){
+      if (started) return;
+      started = true;
+      post({
+        event_type: 'quote_form_start',
+        form_location: f.getAttribute('data-sina-cta') || f.id,
+        cta_source: f.getAttribute('data-sina-cta') || f.id
+      });
+    }, true);
     f.addEventListener('submit', function(e){ handleQuoteSubmit(f, e); }, true);
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){
-      bindForm('heroForm');
-      bindForm('quoteForm');
-    });
-  } else {
+  function bindMarketingDom(){
     bindForm('heroForm');
     bindForm('quoteForm');
+    patchAllWaLinks();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindMarketingDom);
+  } else {
+    bindMarketingDom();
   }
 
   /* Exponer para debug manual: window.SinaMarketing.attr / .newRequestId() */
@@ -2898,37 +3068,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     attr: attr,
     newRequestId: newRequestId,
     readTrackingRef: readTrackingRef,
-    version: '2.2.0',
+    version: '2.3.1',
     erpAttribution: erpAttribution
   };
 })();
 </script>
-
-<!-- ═══════════════════════════════════════════════════════════════════════
-     GOOGLE ADS conversion tracking (placeholders — completar cuando existan)
-     ─────────────────────────────────────────────────────────────────────
-     Cuando se creen las conversion actions en Google Ads:
-       1. AW_ID                        = "AW-XXXXXXXXXX"
-       2. LABEL_QUOTE (primary)        = "abcdefghIJKL"  → mapea dataLayer event 'quote_request_whatsapp'
-       3. LABEL_WA_CLICK (secondary)   = "mnopqrstUVWX"  → mapea dataLayer event 'whatsapp_click'
-     Recomendación: configurar vía Google Tag Manager (GTM triggers sobre
-     eventos de dataLayer). Ver README.md sección "Marketing tracking".
-     ═══════════════════════════════════════════════════════════════════ -->
-<!-- Google Ads gtag.js — DESACTIVADO hasta que existan IDs reales
-<script async src="https://www.googletagmanager.com/gtag/js?id=SIN_CONFIGURAR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'SIN_CONFIGURAR');
-</script>
--->
-
-<!-- SINA · Marketing tracking (atribucion web -> WhatsApp -> pedido) -->
-<script defer
-  data-endpoint="https://app.gruposina.cl/api/marketing/track"
-  data-wa-phone="56927436006"
-  src="https://app.gruposina.cl/sina-track.js"></script>
 
 </body>
 </html>
